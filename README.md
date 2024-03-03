@@ -12,7 +12,7 @@
 git clone https://github.com/muhammadisa226/be-refood-app.git
 ```
 
-### OR clone Repo another branch
+### Or clone repo another branch
 
 ```sh
 git clone -b namebranch https://github.com/muhammadisa226/be-refood-app.git
