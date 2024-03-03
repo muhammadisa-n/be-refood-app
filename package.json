@@ -1,0 +1,21 @@
+{
+  "name": "backend-refood-app",
+  "version": "1.0.0",
+  "description": "bakend for Refood-app",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/muhammadisa226/be-refood-app.git"
+  },
+  "keywords": [
+    "backend",
+    "refood",
+    "app"
+  ],
+  "author": "Muhammad Isa",
+  "license": "ISC",
+  "homepage": "https://github.com/muhammadisa226/be-refood-app#readme"
+}
