@@ -24,7 +24,17 @@ git clone -b namebranch https://github.com/muhammadisa226/be-refood-app.git
 npm install
 ```
 
-### Run Project
+### Configure database
+
+```sh
+npx prisma init
+```
+
+```sh
+npx prisma migrate dev
+```
+
+### Run Server
 
 ```sh
 npm run dev
