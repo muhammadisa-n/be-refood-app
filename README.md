@@ -1,12 +1,12 @@
 # Backend ReFood App
 
-### Design
-
-[Design Figma]()
-
 ### Frontend Repository
 
 [Frontend ReFood App](https://github.com/muhammadisa226/fe-refood-app)
+
+### Design
+
+[Design Figma]()
 
 # Usage
 
