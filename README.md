@@ -2,7 +2,7 @@
 
 ### Frontend Repository
 
-[Frontend ReFood App](https://github.com/muhammadisa226/fe-refood-app)
+[Frontend](https://github.com/muhammadisa226/fe-tugas-akhir)
 
 ### Design
 
@@ -13,13 +13,13 @@
 ### Clone Repo
 
 ```sh
-git clone https://github.com/muhammadisa226/be-refood-app.git
+git clone https://github.com/muhammadisa226/be-tugas-akhir.git
 ```
 
 ### Or clone repo another branch
 
 ```sh
-git clone -b namebranch https://github.com/muhammadisa226/be-refood-app.git
+git clone -b namebranch https://github.com/muhammadisa226/be-tugas-akhir.git
 ```
 
 ### Project Setup
