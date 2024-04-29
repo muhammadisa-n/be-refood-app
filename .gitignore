@@ -27,5 +27,5 @@ dist-ssr
 .env.stag
 .env.prod
 .tes.rest
-!public/
-public/*
+!.public/
+.public/*
