@@ -1,0 +1,264 @@
+import prisma from "../utils/prisma.js"
+import path from "path"
+import fs from "fs"
+import { ProductValidation } from "../validation/ProductValidation.js"
+export const createProduct = async (req, res) => {
+  if (req.files === null) {
+    return res
+      .status(400)
+      .json({ message: "No File Uploaded", status_code: 400 })
+  }
+  const datavalidate = {
+    name: req.body.name,
+    description: req.body.description,
+    price: req.body.price,
+  }
+  const validate = ProductValidation.validate(datavalidate, {
+    allowUnknown: false,
+  })
+  if (validate.error) {
+    let errors = validate.error.message
+    return res.status(400).json({ message: `${errors}`, status_code: 400 })
+  }
+  const file = req.files.image
+  const fileSize = file.data.length
+  const ext = path.extname(file.name)
+  const datenow = Date.now()
+  const filename = datenow + file.md5 + ext
+  const url_image = `${req.protocol}://${req.get(
+    "host"
+  )}/products/images/${filename}`
+  const allowedType = [".png", ".jpg", ".jpeg"]
+  if (!allowedType.includes(ext.toLowerCase())) {
+    return res
+      .status(422)
+      .json({ message: "invalid type image", status_code: 422 })
+  }
+  if (fileSize > 1000000)
+    return res
+      .status(422)
+      .json({ message: "file to big minimum 10MB", status_code: 422 })
+
+  file.mv(`./public/products/images/${filename}`, async (err) => {
+    if (err)
+      return res.status(500).json({ message: err.message, status_code: 500 })
+  })
+  try {
+    await prisma.product.create({
+      data: {
+        name: validate.value.name,
+        description: validate.value.description,
+        price: validate.value.price,
+        image: filename,
+        url_image,
+        userId: req.userData.user_id,
+      },
+    })
+    res.status(201).json({ msg: "Product Created", status_code: 201 })
+  } catch (error) {
+    return res
+      .status(501)
+      .json({ message: `${error.message}`, status_code: 501 })
+  }
+}
+export const updateProduct = async (req, res) => {
+  const datavalidate = {
+    name: req.body.name,
+    description: req.body.description,
+    price: req.body.price,
+  }
+  const validate = ProductValidation.validate(datavalidate, {
+    allowUnknown: false,
+  })
+  if (validate.error) {
+    let errors = validate.error.message
+    return res.status(400).json({ message: `${errors}`, status_code: 400 })
+  }
+  const product = await prisma.product.findFirst({
+    where: { id: req.params.id, userId: req.userData.user_id },
+  })
+  if (!product)
+    return res
+      .status(404)
+      .json({ message: "Product not found", status_code: 404 })
+  let filename = ""
+  if (req.files === null) {
+    filename = product.image
+  } else {
+    const file = req.files.image
+    const fileSize = file.data.length
+    const ext = path.extname(file.name)
+    const datenow = Date.now()
+    filename = datenow + file.md5 + ext
+    const allowedType = [".png", ".jpeg", ".jpg"]
+    if (!allowedType.includes(ext.toLowerCase()))
+      return res
+        .status(422)
+        .json({ message: "invalid type image", status_code: 422 })
+    if (fileSize > 10000000)
+      return res
+        .status(422)
+        .json({ message: "file to big minimum 10MB", status_code: 422 })
+    const filepath = `./public/products/images/${product.image}`
+    fs.unlinkSync(filepath)
+    file.mv(`./public/products/images/${filename}`, (err) => {
+      if (err)
+        return res.status(500).json({ message: err.message, status_code: 500 })
+    })
+  }
+  const url_image = `${req.protocol}://${req.get(
+    "host"
+  )}/products/images/${filename}`
+  try {
+    await prisma.product.update({
+      where: { id: req.params.id },
+      data: {
+        name: validate.value.name,
+        description: validate.value.description,
+        price: validate.value.price,
+        image: filename,
+        url_image,
+        updated_at: new Date(),
+      },
+    })
+    res.status(200).json({ msg: "Product Updated", status_code: 200 })
+  } catch (error) {
+    return res
+      .status(501)
+      .json({ message: `${error.message}`, status_code: 501 })
+  }
+}
+export const deleteProduct = async (req, res) => {
+  const product = await prisma.product.findUnique({
+    where: { id: req.params.id, userId: req.userData.user_id },
+  })
+  if (!product)
+    return res
+      .status(404)
+      .json({ message: "Product not found", status_code: 404 })
+  try {
+    const filepath = `./public/products/images/${product.image}`
+    fs.unlinkSync(filepath)
+    await prisma.product.delete({
+      where: { id: req.params.id, userId: req.userData.user_id },
+    })
+    res.status(200).json({ msg: "Product Deleted", status_code: 200 })
+  } catch (error) {
+    return res
+      .status(501)
+      .json({ message: `${error.message}`, status_code: 501 })
+  }
+}
+export const getDetailProduct = async (req, res) => {
+  const product = await prisma.product.findUnique({
+    where: { id: req.params.id },
+  })
+  if (!product)
+    return res
+      .status(404)
+      .json({ message: "Product not found", status_code: 404 })
+  res.status(200).json({ product, status_code: 200 })
+}
+
+export const getAllProduct = async (req, res) => {
+  let take = Number(req.query.take) || 0
+  let skip = Number(req.query.skip) || 0
+  try {
+    if (take) {
+      const product = await prisma.product.findMany({
+        take,
+        skip,
+        orderBy: { updated_at: "desc" },
+      })
+      let lastproduct = product[take - 1]
+      const myCursor = lastproduct.id
+      if (product.length === 0)
+        return res.status(200).json({
+          msg: "Data Product is Empty",
+          product,
+          totaldata: product.length,
+          status_code: 200,
+        })
+      res.status(200).json({
+        msg: "All Data Product Found",
+        product,
+        cursor: myCursor,
+        totaldata: product.length,
+        status_code: 200,
+      })
+    } else {
+      const product = await prisma.product.findMany({
+        orderBy: { created_at: "desc" },
+      })
+      if (product.length === 0)
+        return res.status(200).json({
+          msg: "Data Product is Empty",
+          product,
+          totaldata: product.length,
+          status_code: 200,
+        })
+      res.status(200).json({
+        msg: "All Data Product Found",
+        product,
+        totaldata: product.length,
+        status_code: 200,
+      })
+    }
+  } catch (error) {
+    return res
+      .status(501)
+      .json({ message: `${error.message}`, status_code: 501 })
+  }
+}
+export const getAllProductBySellerId = async (req, res) => {
+  let take = Number(req.query.take) || 0
+  let skip = Number(req.query.skip) || 0
+  try {
+    if (take) {
+      const product = await prisma.product.findMany({
+        where: { userId: req.userData.user_id },
+        take,
+        skip,
+        orderBy: { updated_at: "desc" },
+      })
+      let lastproduct = product[take - 1]
+      const myCursor = lastproduct.id
+      if (product.length === 0)
+        return res.status(200).json({
+          msg: "Data Product is Empty",
+          product,
+          totaldata: product.length,
+          status_code: 200,
+        })
+      res.status(200).json({
+        msg: "All Data Product Found",
+        product,
+        cursor: myCursor,
+        totaldata: product.length,
+        status_code: 200,
+      })
+    } else {
+      const product = await prisma.product.findMany({
+        orderBy: { created_at: "desc" },
+        where: { userId: req.userData.user_id },
+      })
+      if (product.length === 0)
+        return res.status(200).json({
+          msg: "Data Product is Empty",
+          product,
+          totaldata: product.length,
+          status_code: 200,
+        })
+      res.status(200).json({
+        msg: "All Data Product Found",
+        product,
+        totaldata: product.length,
+        status_code: 200,
+      })
+    }
+  } catch (error) {
+    return res
+      .status(501)
+      .json({ message: `${error.message}`, status_code: 501 })
+  }
+}

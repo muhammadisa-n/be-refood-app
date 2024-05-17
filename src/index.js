@@ -7,7 +7,7 @@ import router from "./routes/index.js"
 import cookieParser from "cookie-parser"
 const port = process.env.PORT || 5000
 const app = express()
-app.use(cors())
+app.use(cors({ credentials: true, origin: ["http://localhost:5173"] }))
 app.use(morgan("dev"))
 app.use(cookieParser())
 app.use(express.json())

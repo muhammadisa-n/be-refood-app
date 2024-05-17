@@ -21,16 +21,45 @@ export const RegisterValidation = Joi.object({
     "string.empty": "Field confirm password must be filled in",
     "string.min": "Field confirm password min 8 character",
   }),
+  province: Joi.string().required().max(100).messages({
+    "any.required": "Field province is Required",
+    "string.empty": "Field province must be filled in",
+    "string.max": "Field province max 100 character",
+  }),
+  city: Joi.string().required().max(100).messages({
+    "any.required": "Field city is Required",
+    "string.empty": "Field city must be filled in",
+    "string.max": "Field city max 100 character",
+  }),
+  district: Joi.string().required().max(100).messages({
+    "any.required": "Field district is Required",
+    "string.empty": "Field district must be filled in",
+    "string.max": "Field district 100 max character",
+  }),
+  village: Joi.string().required().max(100).messages({
+    "any.required": "Field village is Required",
+    "string.empty": "Field village must be filled in",
+    "string.max": "Field village max 100 character",
+  }),
+  postal_code: Joi.string().required().max(100).messages({
+    "any.required": "Field postal_code is Required",
+    "string.empty": "Field postal_code must be filled in",
+    "string.max": "Field postal_code max 100 character",
+  }),
   address: Joi.string().required().max(255).messages({
     "any.required": "Field address is Required",
     "string.empty": "Field address must be filled in",
-    "string.min": "Field address min 100 character",
+    "string.max": "Field address max 255 character",
   }),
   no_hp: Joi.string().required().min(12).max(15).messages({
     "any.required": "Field no_hp is Required",
     "string.empty": "Field no_hp must be filled in",
     "string.min": "Field no_hp min 12 character",
     "string.max": "Field no_hp max 15 character",
+  }),
+  role: Joi.string().required().valid("Admin", "Seller", "Customer").messages({
+    "any.required": "Field role is Required",
+    "string.valid": "Field role is must be a valid",
   }),
 })
 

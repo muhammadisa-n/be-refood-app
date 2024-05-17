@@ -1,6 +1,7 @@
 import express from "express"
-import { verifyToken } from "../middleware/AuthMiddleware.js"
-import { getUser } from "../controller/UserController.js"
+import { AuthMiddleware } from "../middleware/AuthMiddleware.js"
+import { getUser, updateUser } from "../controller/UserController.js"
 const userRoutes = express.Router()
-userRoutes.get("/user/get", verifyToken, getUser)
+userRoutes.get("/user/get", AuthMiddleware, getUser)
+userRoutes.put("/user/update", AuthMiddleware, updateUser)
 export default userRoutes
