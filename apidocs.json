@@ -1,0 +1,479 @@
+{
+    "openapi": "3.0.3",
+    "info": {
+        "title": "Refood Restfull API Documentation",
+        "description": "OpenAPI Documentation for Refood Restfull API",
+        "version": "1",
+        "contact": {
+            "name": "Muhammad Isa",
+            "email": "muhammadisa226@gmail.com"
+        }
+    },
+    "servers": [
+        {
+            "url": "http://localhost:5000/api/"
+        }
+    ],
+    "paths": {
+        "/auth/register": {
+            "post": {
+                "tags": ["Auth"],
+                "description": "User Register",
+                "summary": "User Register",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "fullname": {
+                                        "type": "string",
+                                        "required": true
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "required": true
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "required": true
+                                    },
+                                    "confPassword": {
+                                        "type": "string",
+                                        "required": true
+                                    },
+                                    "province": {
+                                        "type": "string",
+                                        "required": true
+                                    },
+                                    "city": {
+                                        "type": "string",
+                                        "required": true
+                                    },
+                                    "district": {
+                                        "type": "string",
+                                        "required": true
+                                    },
+                                    "village": {
+                                        "type": "string",
+                                        "required": true
+                                    },
+                                    "address": {
+                                        "type": "string",
+                                        "required": true
+                                    },
+                                    "no_hp": {
+                                        "type": "string",
+                                        "required": true
+                                    },
+                                    "role": {
+                                        "type": "string",
+                                        "required": true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "status_code": {
+                                            "type": "integer"
+                                        }
+                                    }
+                                },
+                                "examples": {
+                                    "Email Not Verified": {
+                                        "description": "Email not verified",
+                                        "value": {
+                                            "message": "Email Not Verified",
+                                            "status_code": 401
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "201": {
+                        "description": "Register Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "status_code": {
+                                            "type": "integer"
+                                        }
+                                    }
+                                },
+                                "examples": {
+                                    "Register Success": {
+                                        "description": "Register success",
+                                        "value": {
+                                            "message": "Register Successfully, Please check your email to verify",
+                                            "status_code": 201
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Email conflict",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "status_code": {
+                                            "type": "integer"
+                                        }
+                                    }
+                                },
+                                "examples": {
+                                    "Email conflict": {
+                                        "description": "Email has been register",
+                                        "value": {
+                                            "message": "Email has been registered",
+                                            "status_code": 409
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "status_code": {
+                                            "type": "integer"
+                                        }
+                                    }
+                                },
+                                "examples": {
+                                    "Field Form Required": {
+                                        "description": "Field form is required",
+                                        "value": {
+                                            "message": "Field Fullname is Required",
+                                            "status_code": 400
+                                        }
+                                    },
+                                    "Field Form Empty": {
+                                        "description": "Field form is empty",
+                                        "value": {
+                                            "message": "Field Fullname must be filled in",
+                                            "status_code": 400
+                                        }
+                                    },
+                                    "Field Form Invalid Email": {
+                                        "description": "Field form invalid email",
+                                        "value": {
+                                            "message": "Field email is not valid email",
+                                            "status_code": 400
+                                        }
+                                    },
+                                    "Field Form Role Invalid": {
+                                        "description": "Field form role invalid",
+                                        "value": {
+                                            "message": "Field role must be one of [Admin, Seller, Customer]",
+                                            "status_code": 400
+                                        }
+                                    },
+                                    "Field Form Minimum Character": {
+                                        "description": "Field Form minimum character",
+                                        "value": {
+                                            "message": "Field no_hp min 12 character",
+                                            "status_code": 400
+                                        }
+                                    },
+                                    "Field Form Maximum Character": {
+                                        "description": "Field form maximum character",
+                                        "value": {
+                                            "message": "Field Fullname max 100 character",
+                                            "status_code": 400
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/login": {
+            "post": {
+                "tags": ["Auth"],
+                "summary": "User Login",
+                "description": "User Login",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "email": {
+                                        "type": "string"
+                                    },
+                                    "password": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "status_code": {
+                                            "type": "integer"
+                                        }
+                                    }
+                                },
+                                "examples": {
+                                    "Wrong Email Or Password": {
+                                        "description": "Wrong Email or Password",
+                                        "value": {
+                                            "message": "Wrong email or password",
+                                            "status_code": 401
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "status_code": {
+                                            "type": "integer"
+                                        }
+                                    }
+                                },
+                                "examples": {
+                                    "Validation Error": {
+                                        "description": "Validation Form email Error",
+                                        "value": {
+                                            "message": "Field email is not valid email",
+                                            "status_code": 400
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "Login Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "access_token": {
+                                            "type": "string"
+                                        },
+                                        "status_code": {
+                                            "type": "integer"
+                                        }
+                                    }
+                                },
+                                "examples": {
+                                    "Login Success": {
+                                        "description": "Login Success",
+                                        "value": {
+                                            "message": "Login Success",
+                                            "access_token": "token",
+                                            "status_code": 200
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/logout": {
+            "delete": {
+                "tags": ["Auth"],
+                "summary": "User Logout",
+                "description": "User Logout",
+                "responses": {
+                    "200": {
+                        "description": "Logout Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "status_code": {
+                                            "type": "integer"
+                                        }
+                                    }
+                                },
+                                "examples": {
+                                    "Logout Success": {
+                                        "description": "Logout success",
+                                        "value": {
+                                            "message": "Logout Success",
+                                            "status_code": 200
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "status_code": {
+                                            "type": "integer"
+                                        }
+                                    }
+                                },
+                                "examples": {
+                                    "User Or Cookie Not Found": {
+                                        "description": "User Or Cookie Not Found",
+                                        "value": {
+                                            "message": "Unauthorized,You must login  \uD83D\uDD0F",
+                                            "status_code": 401
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                    }
+                }
+            }
+        },
+        "/user/get": {
+            "get": {
+                "tags": ["User"],
+                "summary": "Get Detail User",
+                "description": "Get Detail User Logged In",
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "required": true,
+                        "description": "access_token",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Get User Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "status_code": {
+                                            "type": "integer"
+                                        }
+                                    }
+                                },
+                                "examples": {
+                                    "Logout Success": {
+                                        "description": "Logout success",
+                                        "value": {
+                                            "message": "Logout Success",
+                                            "status_code": 200
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/user/update": {
+            "put": {
+                "tags": ["User"],
+                "summary": "Update User",
+                "description": "Update  User ",
+                "responses": {}
+            }
+        },
+        "/user/update/profile-image": {
+            "put": {
+                "tags": ["User"],
+                "summary": "Update User Profile Image",
+                "description": "Update  User profile Image",
+                "responses": {}
+            }
+        },
+        "/seller/products": {
+            "post": {
+                "tags": ["Seller"]
+            },
+            "get": {
+                "tags": ["Seller"]
+            }
+        },
+        "/seller/product/{id}": {
+            "put": {
+                "tags": ["Seller"]
+            },
+            "delete": {
+                "tags": ["Seller"]
+            }
+        }
+    }
+}
