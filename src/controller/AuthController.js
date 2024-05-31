@@ -5,8 +5,9 @@ import {
     LoginValidation,
     RegisterValidation,
 } from '../validation/AuthValidation.js'
-import nodemailer from 'nodemailer'
 import 'dotenv/config'
+import transporter from '../utils/nodemailer.js'
+
 export const Register = async (req, res) => {
     const dataRegister = {
         fullname: req.body.fullname,
@@ -48,16 +49,6 @@ export const Register = async (req, res) => {
     const salt = 10
     const hashPassword = await bcrypt.hash(validate.value.password, salt)
 
-    const transporter = nodemailer.createTransport({
-        host: process.env.MAIL_HOST,
-        port: process.env.MAIL_PORT,
-        auth: {
-            user: process.env.MAIL_USER,
-            pass: process.env.MAIL_PASS,
-        },
-        logger: true, // log to console
-        debug: true, // include SMTP traffic in the logs
-    })
     const verifyEmailToken = jwt.sign(
         { email: validate.value.email },
         process.env.VERIFY_EMAIL_TOKEN_SECRET,
@@ -65,13 +56,13 @@ export const Register = async (req, res) => {
     )
     const url = `${process.env.CLIENT_URL}/verification-email?token=${verifyEmailToken}`
     const mailOptions = {
-        from: process.env.MAIL_USER,
+        from: '"Refood App" <refood.app.2024@gmail.com>',
         to: validate.value.email,
         subject: 'Email Verification',
-        html: `<p>Click <a href="${url}">here</a> to verify your email.</p>`,
+        html: `<p><a href="${url}">Click here</a> to verify your email.</p>`,
     }
 
-    transporter.sendMail(mailOptions)
+    await transporter.sendMail(mailOptions)
     try {
         await prisma.user.create({
             data: {
@@ -86,6 +77,7 @@ export const Register = async (req, res) => {
                 address: validate.value.address,
                 no_hp: validate.value.no_hp,
                 role: validate.value.role,
+                verified_at: null,
             },
         })
         res.status(201).json({
@@ -117,12 +109,27 @@ export const Login = async (req, res) => {
         return res
             .status(401)
             .json({ message: 'Wrong email or password', status_code: 401 })
+
     const match = await bcrypt.compare(validate.value.password, user.password)
     if (!match)
         return res
             .status(401)
             .json({ message: 'Wrong email or password', status_code: 401 })
-    if (user.is_verified !== true) {
+
+    if (!user.verified_at) {
+        const verifyEmailToken = jwt.sign(
+            { email: validate.value.email },
+            process.env.VERIFY_EMAIL_TOKEN_SECRET,
+            { expiresIn: '1h' }
+        )
+        const url = `${process.env.CLIENT_URL}/verification-email?token=${verifyEmailToken}`
+        const mailOptions = {
+            from: 'Refood App',
+            to: validate.value.email,
+            subject: 'Email Verification',
+            html: `<p>Click <a href="${url}">here</a> to verify your email.</p>`,
+        }
+        await transporter.sendMail(mailOptions)
         return res
             .status(401)
             .json({ message: 'Email Not Verified', status_code: 401 })
@@ -234,13 +241,12 @@ export const refreshToken = async (req, res) => {
     }
 }
 export const verifyEmail = async (req, res) => {
-    const { token } = req.query
+    const token = req.query.token
     if (!token) {
         return res
             .status(400)
-            .json({ message: 'Token is required', status_code: 400 })
+            .json({ message: 'Token Not Found', status_code: 400 })
     }
-
     try {
         const decoded = jwt.verify(token, process.env.VERIFY_EMAIL_TOKEN_SECRET)
         const email = decoded.email
@@ -252,24 +258,24 @@ export const verifyEmail = async (req, res) => {
         if (!user) {
             return res
                 .status(404)
-                .json({ message: 'User not found', status_code: 404 })
+                .json({ message: 'User Not Found', status_code: 404 })
         }
-        if (user.is_verified) {
+        if (user.verified_at) {
             return res
                 .status(400)
-                .json({ message: 'Email already verified', status_code: 400 })
+                .json({ message: 'Email Already Verified', status_code: 400 })
         }
         await prisma.user.update({
             where: { email: email },
-            data: { is_verified: true },
+            data: { verified_at: new Date() },
         })
         res.status(200).json({
-            message: 'Email Verified Successfully',
+            message: 'Verified Email Successfully',
             status_code: 200,
         })
     } catch (error) {
         return res
             .status(400)
-            .json({ message: 'Invalid or expired token', status_code: 400 })
+            .json({ message: 'Invalid Token Or Expired', status_code: 400 })
     }
 }

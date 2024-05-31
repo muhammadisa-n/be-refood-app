@@ -7,20 +7,22 @@ import router from './routes/index.js'
 import cookieParser from 'cookie-parser'
 import swaggerUi from 'swagger-ui-express'
 import swaggerDoc from './utils/apiDocs.js'
+import { connectDatabase } from './utils/prisma.js'
+
 const port = process.env.PORT_APP || 5000
-const clientUrl = process.env.CLIENT_URL
-import transporter from './utils/nodemailer.js'
 const app = express()
 const options = {
     customCss: '.swagger-ui .topbar { display: none }',
     customSiteTitle: 'Refood Restfull API Documentation',
 }
+const clientUrl = process.env.CLIENT_URL
 app.use(
     cors({
         credentials: true,
-        origin: clientUrl,
+        origin: [clientUrl],
     })
 )
+connectDatabase()
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDoc, options))
 app.use(morgan('dev'))
 app.use(cookieParser())
