@@ -56,7 +56,7 @@ export const Register = async (req, res) => {
     )
     const url = `${process.env.CLIENT_URL}/verification-email?token=${verifyEmailToken}`
     const mailOptions = {
-        from: '"Refood App" <refood.app.2024@gmail.com>',
+        from: process.env.MAIL_FROM,
         to: validate.value.email,
         subject: 'Email Verification',
         html: `<p><a href="${url}">Click here</a> to verify your email.</p>`,
@@ -124,15 +124,19 @@ export const Login = async (req, res) => {
         )
         const url = `${process.env.CLIENT_URL}/verification-email?token=${verifyEmailToken}`
         const mailOptions = {
-            from: 'Refood App',
+            from: process.env.MAIL_FROM,
             to: validate.value.email,
             subject: 'Email Verification',
-            html: `<p>Click <a href="${url}">here</a> to verify your email.</p>`,
+            html: `<p><a href="${url}">Click here</a> to verify your email.</p>`,
         }
         await transporter.sendMail(mailOptions)
         return res
             .status(401)
-            .json({ message: 'Email Not Verified', status_code: 401 })
+            .json({
+                message:
+                    'Email Not Verified, Verification email sent. Please check your email.',
+                status_code: 401,
+            })
     }
     const payload = {
         user_id: user.id,
