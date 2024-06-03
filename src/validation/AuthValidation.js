@@ -78,3 +78,25 @@ export const LoginValidation = Joi.object({
         'string.empty': 'Field password must be filled in',
     }),
 })
+export const EmailValidation = Joi.string()
+    .required()
+    .max(100)
+    .email()
+    .messages({
+        'any.required': 'Field email is Required',
+        'string.email': 'Field email is not valid email',
+        'string.empty': 'Field email must be filled in',
+        'string.max': 'Field email max 100 character',
+    })
+export const ForgotPasswordValidation = Joi.object({
+    newPassword: Joi.string().required().min(8).messages({
+        'any.required': 'Field password is Required',
+        'string.empty': 'Field password must be filled in',
+        'string.min': 'Field password min 8 character',
+    }),
+    confPassword: Joi.string().required().min(8).messages({
+        'any.required': 'Field confirm password is Required',
+        'string.empty': 'Field confirm password must be filled in',
+        'string.min': 'Field confirm password min 8 character',
+    }),
+})

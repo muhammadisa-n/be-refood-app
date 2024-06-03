@@ -6,12 +6,17 @@ export const ProductValidation = Joi.object({
         'string.empty': 'Field name must be filled in',
         'string.max': 'Field name max 100 character',
     }),
-    description: Joi.string().required().max(255).messages({
+    description: Joi.string().required().messages({
         'any.required': 'Field description is Required',
         'string.empty': 'Field description must be filled in',
-        'string.max': 'Field description max 255 character',
     }),
     price: Joi.number().positive().required().messages({
         'any.required': 'Field price is Required',
+    }),
+    categoryId: Joi.number().positive().required().messages({
+        'any.required': 'Field Category Id is Required',
+    }),
+    stock: Joi.number().positive().required().messages({
+        'any.required': 'Field stock is Required',
     }),
 })

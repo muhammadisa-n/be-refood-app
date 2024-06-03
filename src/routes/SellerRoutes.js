@@ -1,21 +1,15 @@
 import express from 'express'
 import { AuthMiddleware } from '../middleware/AuthMiddleware.js'
-import { IsSeller } from '../middleware/RoleMiddleware.js'
 import {
+    getAllProduct,
     createProduct,
     deleteProduct,
-    getAllProductBySellerId,
     updateProduct,
 } from '../controller/SellerController.js'
-
+import { IsSeller } from '../middleware/RoleMiddleware.js'
 const sellerRoutes = express.Router()
 sellerRoutes.post('/seller/products', AuthMiddleware, IsSeller, createProduct)
-sellerRoutes.get(
-    '/seller/products',
-    AuthMiddleware,
-    IsSeller,
-    getAllProductBySellerId
-)
+sellerRoutes.get('/seller/products', AuthMiddleware, IsSeller, getAllProduct)
 
 sellerRoutes.put(
     '/seller/products/:id',
@@ -23,10 +17,12 @@ sellerRoutes.put(
     IsSeller,
     updateProduct
 )
+
 sellerRoutes.delete(
     '/seller/products/:id',
     AuthMiddleware,
     IsSeller,
     deleteProduct
 )
+
 export default sellerRoutes

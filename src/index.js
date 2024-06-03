@@ -19,7 +19,7 @@ const clientUrl = process.env.CLIENT_URL
 app.use(
     cors({
         credentials: true,
-        origin: [clientUrl],
+        origin: [clientUrl, 'http://localhost:4173'],
     })
 )
 connectDatabase()

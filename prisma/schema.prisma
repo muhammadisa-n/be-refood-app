@@ -30,13 +30,14 @@ model User {
   village       String    @db.VarChar(100)
   postal_code   String    @db.VarChar(100)
   address       String    @db.VarChar(255)
-  no_hp         String    @db.VarChar(15)
+  no_hp         String    @unique @db.VarChar(15)
   role          RoleUser
   verified_at   DateTime?
   image         String?   @db.VarChar(255)
   url_image     String?   @db.VarChar(255)
   refresh_token String?   @db.VarChar(500)
   products      Product[]
+  carts         Cart[]
 
   @@map("users")
 }
@@ -44,15 +45,39 @@ model User {
 model Product {
   id          String   @id @default(uuid())
   name        String   @db.VarChar(100)
-  description String   @db.VarChar(255)
+  description String   @db.Text()
   image       String   @db.VarChar(255)
   price       Int
+  stock       Int
   url_image   String   @db.VarChar(255)
   is_valid    Boolean  @default(false)
   userId      String   @db.VarChar(100)
   User        User     @relation(fields: [userId], references: [id])
   created_at  DateTime @default(now())
   updated_at  DateTime @default(now())
+  categoryId  Int
+  Category    Category @relation(fields: [categoryId], references: [id])
+  Cart        Cart[]
 
   @@map("products")
+}
+
+model Category {
+  id        Int       @id @default(autoincrement())
+  name      String    @db.VarChar(100)
+  image     String    @db.VarChar(255)
+  url_image String    @db.VarChar(255)
+  products  Product[]
+
+  @@map("categories")
+}
+
+model Cart {
+  id        String   @id @default(uuid())
+  productId String
+  userId    String
+  Product   Product? @relation(fields: [productId], references: [id])
+  User      User?    @relation(fields: [userId], references: [id])
+
+  @@map("carts")
 }

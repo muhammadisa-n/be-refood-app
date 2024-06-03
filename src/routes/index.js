@@ -2,7 +2,10 @@ import express from 'express'
 import AuthRoutes from './AuthRoutes.js'
 import userRoutes from './UserRoutes.js'
 import productRoutes from './ProductRoutes.js'
-import sellerRoutes from './SellerRoutes.js'
+import AdminRoutes from './AdminRoutes.js'
+import SellerRoutes from './SellerRoutes.js'
+import CategoryRoutes from './CategoryRoutes.js'
+import CartRoutes from './CartRoutes.js'
 
 const router = express.Router()
 
@@ -22,9 +25,13 @@ router.get('/api', (req, res) => {
     })
 })
 router.use('/api/', AuthRoutes)
+router.use('/api/', AdminRoutes)
+router.use('/api/', SellerRoutes)
+router.use('/api/', CartRoutes)
+router.use('/api/', CategoryRoutes)
 router.use('/api/', userRoutes)
 router.use('/api/', productRoutes)
-router.use('/api/', sellerRoutes)
+
 router.use('*', (req, res) => {
     res.status(404).json({
         message: 'Request Not Found, Bad Request',

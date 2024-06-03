@@ -11,6 +11,18 @@ export const IsSeller = async (req, res, next) => {
     }
     next()
 }
+export const IsCustomer = async (req, res, next) => {
+    const user = await prisma.user.findFirst({
+        where: { id: req.userData.user_id },
+    })
+    if (user.role !== 'Customer') {
+        return res.status(403).json({
+            message: 'Access Forbidden ,You must be Customer',
+            status_code: 403,
+        })
+    }
+    next()
+}
 export const IsAdmin = async (req, res, next) => {
     const user = await prisma.user.findFirst({
         where: { id: req.userData.user_id },

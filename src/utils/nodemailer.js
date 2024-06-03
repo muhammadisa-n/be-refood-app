@@ -13,7 +13,8 @@ transporter.verify((error, success) => {
     if (error) {
         console.error(error)
     } else {
-        console.log('Success Connect Nodemailer')
+        console.log(success)
     }
 })
+
 export default transporter

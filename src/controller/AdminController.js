@@ -1,14 +1,13 @@
 import prisma from '../utils/prisma.js'
 import path from 'path'
 import fs from 'fs'
-import { ProductValidation } from '../validation/ProductValidation.js'
+import { CategoryValidation } from '../validation/CategoryValidation.js'
 export const getAllProduct = async (req, res) => {
     let take = Number(req.query.take) || 0
     let skip = Number(req.query.skip) || 0
     try {
         if (take) {
             const product = await prisma.product.findMany({
-                where: { userId: req.userData.user_id },
                 take,
                 skip,
                 orderBy: { updated_at: 'desc' },
@@ -35,7 +34,6 @@ export const getAllProduct = async (req, res) => {
         } else {
             const product = await prisma.product.findMany({
                 orderBy: { created_at: 'desc' },
-                where: { userId: req.userData.user_id },
                 include: {
                     Category: true,
                 },
@@ -60,14 +58,63 @@ export const getAllProduct = async (req, res) => {
             .json({ message: `${error.message}`, status_code: 501 })
     }
 }
-export const createProduct = async (req, res) => {
+export const changeStatusProduct = async (req, res) => {
+    try {
+        const product = await prisma.product.findFirst({
+            where: { id: req.params.id },
+        })
+        if (!product) {
+            return res
+                .status(404)
+                .json({ message: 'Product Not Found', status_code: 404 })
+        }
+        await prisma.product.update({
+            where: { id: req.params.id },
+            data: {
+                is_valid: req.body.is_valid,
+            },
+        })
+        return res
+            .status(200)
+            .json({ message: 'Status Product Change', status_code: 200 })
+    } catch (error) {
+        return res
+            .status(501)
+            .json({ message: `${error.message}`, status_code: 501 })
+    }
+}
+
+export const countSeller = async (req, res) => {
+    try {
+        const response = await prisma.user.count({ where: { role: 'Seller' } })
+        return res.status(200).json({ amount: response, status_code: 200 })
+    } catch (error) {
+        return res
+            .status(501)
+            .json({ message: `${error.message}`, status_code: 501 })
+    }
+}
+export const countCustomer = async (req, res) => {
+    try {
+        const response = await prisma.user.count({
+            where: { role: 'Customer' },
+        })
+        return res.status(200).json({ amount: response, status_code: 200 })
+    } catch (error) {
+        return res
+            .status(501)
+            .json({ message: `${error.message}`, status_code: 501 })
+    }
+}
+
+export const createCategory = async (req, res) => {
     if (req.files === null) {
         return res
             .status(400)
-            .json({ message: 'No File Uploaded', status_code: 400 })
+            .json({ message: 'No Image Uploaded', status_code: 400 })
     }
-    const validate = ProductValidation.validate(req.body, {
-        allowUnknown: false,
+    const validate = CategoryValidation.validate(req.body, {
+        allowUnknown: true,
     })
     if (validate.error) {
         let errors = validate.error.message
@@ -78,13 +125,13 @@ export const createProduct = async (req, res) => {
     const ext = path.extname(file.name)
     const datenow = Date.now()
     const filename = datenow + file.md5 + ext
-    const userIdFolder = `./public/products/images/${req.userData.user_id}`
-    if (!fs.existsSync(userIdFolder)) {
-        fs.mkdirSync(userIdFolder)
+    const CategoryFolder = `./public/categories/images`
+    if (!fs.existsSync(CategoryFolder)) {
+        fs.mkdirSync(CategoryFolder)
     }
     const url_image = `${req.protocol}://${req.get(
         'host'
-    )}/products/images/${req.userData.user_id}/${filename}`
+    )}/categories/images/${filename}`
     const allowedType = ['.png', '.jpg', '.jpeg']
     if (!allowedType.includes(ext.toLowerCase())) {
         return res
@@ -96,61 +143,56 @@ export const createProduct = async (req, res) => {
             .status(422)
             .json({ message: 'file to big minimum 10MB', status_code: 422 })
 
-    file.mv(`${userIdFolder}/${filename}`, async (err) => {
+    file.mv(`${CategoryFolder}/${filename}`, async (err) => {
         if (err)
             return res
                 .status(500)
                 .json({ message: err.message, status_code: 500 })
     })
     try {
-        await prisma.product.create({
+        await prisma.category.create({
             data: {
                 name: validate.value.name,
-                description: validate.value.description,
-                price: validate.value.price,
-                stock: validate.value.stock,
-                categoryId: validate.value.categoryId,
                 image: filename,
                 url_image,
-                userId: req.userData.user_id,
             },
         })
         return res
             .status(201)
-            .json({ message: 'Product Created', status_code: 201 })
+            .json({ message: 'Category Created', status_code: 201 })
     } catch (error) {
         return res
             .status(501)
             .json({ message: `${error.message}`, status_code: 501 })
     }
 }
-export const updateProduct = async (req, res) => {
-    const validate = ProductValidation.validate(req.body, {
+export const updateCategory = async (req, res) => {
+    const validate = CategoryValidation.validate(req.body, {
         allowUnknown: true,
     })
     if (validate.error) {
         let errors = validate.error.message
         return res.status(400).json({ message: `${errors}`, status_code: 400 })
     }
-    const product = await prisma.product.findFirst({
-        where: { id: req.params.id, userId: req.userData.user_id },
+    const category = await prisma.category.findFirst({
+        where: { id: parseInt(req.params.id) },
     })
-    if (!product)
+    if (!category)
         return res
             .status(404)
-            .json({ message: 'Product not found', status_code: 404 })
+            .json({ message: 'Category not found', status_code: 404 })
     let filename = ''
     if (req.files === null) {
-        filename = product.image
+        filename = category.image
     } else {
         const file = req.files.image
         const fileSize = file.data.length
         const ext = path.extname(file.name)
         const datenow = Date.now()
         filename = datenow + file.md5 + ext
-        const userIdFolder = `./public/products/images/${req.userData.user_id}`
-        if (!fs.existsSync(userIdFolder)) {
-            fs.mkdirSync(userIdFolder)
+        const CategoryFolder = `./public/categories/images`
+        if (!fs.existsSync(CategoryFolder)) {
+            fs.mkdirSync(CategoryFolder)
         }
         const allowedType = ['.png', '.jpeg', '.jpg']
         if (!allowedType.includes(ext.toLowerCase()))
@@ -162,9 +204,9 @@ export const updateProduct = async (req, res) => {
                 message: 'file to big minimum 10MB',
                 status_code: 422,
             })
-        const filepath = `${userIdFolder}/${product.image}`
+        const filepath = `${CategoryFolder}/${category.image}`
         fs.unlinkSync(filepath)
-        file.mv(`${userIdFolder}/${filename}`, (err) => {
+        file.mv(`${CategoryFolder}/${filename}`, (err) => {
             if (err)
                 return res
                     .status(500)
@@ -173,53 +215,65 @@ export const updateProduct = async (req, res) => {
     }
     const url_image = `${req.protocol}://${req.get(
         'host'
-    )}/products/images/${req.userData.user_id}/${filename}`
+    )}/categories/images/${filename}`
     try {
-        await prisma.product.update({
-            where: { id: req.params.id },
+        await prisma.category.update({
+            where: { id: Number(req.params.id) },
             data: {
                 name: validate.value.name,
-                description: validate.value.description,
-                price: validate.value.price,
                 image: filename,
                 url_image,
-                updated_at: new Date(),
             },
         })
         return res
             .status(200)
-            .json({ message: 'Product Updated', status_code: 200 })
+            .json({ message: 'Category Updated', status_code: 200 })
     } catch (error) {
         return res
             .status(501)
             .json({ message: `${error.message}`, status_code: 501 })
     }
 }
-export const deleteProduct = async (req, res) => {
-    const product = await prisma.product.findUnique({
-        where: { id: req.params.id, userId: req.userData.user_id },
-    })
-    if (!product)
+export const getDetailCategory = async (req, res) => {
+    const categoryId = Number(req.params.id)
+    if (isNaN(categoryId)) {
         return res
             .status(404)
-            .json({ message: 'Product not found', status_code: 404 })
-    try {
-        const filepath = `./public/products/images/${req.userData.user_id}/${product.image}`
-        fs.unlinkSync(filepath)
-        const userIdFolder = `./public/products/images/${req.userData.user_id}`
-        const userProducts = await prisma.product.findMany({
-            where: { userId: req.userData.user_id },
-        })
-        if (userProducts.length === 1 && userProducts[0].id === req.params.id) {
-            fs.rmdirSync(userIdFolder)
-        }
+            .json({ message: 'Category not found', status_code: 404 })
+    }
+    const category = await prisma.category.findUnique({
+        where: { id: categoryId },
+    })
+    if (!category)
+        return res
+            .status(404)
+            .json({ message: 'Category not found', status_code: 404 })
+    return res.status(200).json({ category, status_code: 200 })
+}
 
-        await prisma.product.delete({
-            where: { id: req.params.id, userId: req.userData.user_id },
+export const deleteCategory = async (req, res) => {
+    const categoryId = Number(req.params.id)
+    if (isNaN(categoryId)) {
+        return res
+            .status(404)
+            .json({ message: 'Category not found', status_code: 404 })
+    }
+    const category = await prisma.category.findUnique({
+        where: { id: categoryId },
+    })
+    if (!category)
+        return res
+            .status(404)
+            .json({ message: 'Category not found', status_code: 404 })
+    try {
+        const filepath = `./public/categories/images/${category.image}`
+        fs.unlinkSync(filepath)
+        await prisma.category.delete({
+            where: { id: Number(req.params.id) },
         })
         return res
             .status(200)
-            .json({ message: 'Product Deleted', status_code: 200 })
+            .json({ message: 'Category Deleted', status_code: 200 })
     } catch (error) {
         return res
             .status(501)
