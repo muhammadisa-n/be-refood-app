@@ -6,7 +6,7 @@ import 'dotenv/config'
 import router from './routes/index.js'
 import cookieParser from 'cookie-parser'
 import swaggerUi from 'swagger-ui-express'
-import swaggerDoc from './utils/apiDocs.js'
+import swaggerDoc from './utils/api-docs.js'
 import { connectDatabase } from './utils/prisma.js'
 
 const port = process.env.PORT_APP || 5000

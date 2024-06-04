@@ -13,15 +13,50 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum RoleUser {
-  Admin
-  Seller
-  Customer
+model Admin {
+  id            String    @id @default(uuid())
+  name          String    @db.VarChar(100)
+  email         String    @unique @db.VarChar(100)
+  password      String    @db.VarChar(100)
+  ava_image     String?   @db.VarChar(255)
+  ava_url_image String?   @db.VarChar(255)
+  refresh_token String?   @db.VarChar(500)
+  verified_at   DateTime? @default(now())
+
+  @@map("admin")
 }
 
-model User {
+model Seller {
+  id                String    @id @default(uuid())
+  name              String    @db.VarChar(100)
+  description       String    @db.Text()
+  email             String    @unique @db.VarChar(100)
+  password          String    @db.VarChar(100)
+  province          String    @db.VarChar(100)
+  city              String    @db.VarChar(100)
+  district          String    @db.VarChar(100)
+  village           String    @db.VarChar(100)
+  postal_code       String    @db.VarChar(100)
+  address           String    @db.VarChar(255)
+  no_hp             String    @unique @db.VarChar(15)
+  ava_image         String?   @db.VarChar(255)
+  ava_url_image     String?   @db.VarChar(255)
+  link_map_merchant String    @db.VarChar(100)
+  product_image     String?   @db.VarChar(255)
+  product_url_image String?   @db.VarChar(255)
+  is_active         Boolean   @default(false)
+  verified_at       DateTime?
+  refresh_token     String?   @db.VarChar(500)
+  created_at        DateTime  @default(now())
+  updated_at        DateTime  @default(now())
+  products          Product[]
+
+  @@map("sellers")
+}
+
+model Customer {
   id            String    @id @default(uuid())
-  fullname      String    @db.VarChar(100)
+  name          String    @db.VarChar(100)
   email         String    @unique @db.VarChar(100)
   password      String    @db.VarChar(100)
   province      String    @db.VarChar(100)
@@ -31,53 +66,54 @@ model User {
   postal_code   String    @db.VarChar(100)
   address       String    @db.VarChar(255)
   no_hp         String    @unique @db.VarChar(15)
-  role          RoleUser
+  ava_image     String?   @db.VarChar(255)
+  ava_url_image String?   @db.VarChar(255)
   verified_at   DateTime?
-  image         String?   @db.VarChar(255)
-  url_image     String?   @db.VarChar(255)
   refresh_token String?   @db.VarChar(500)
-  products      Product[]
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @default(now())
   carts         Cart[]
 
-  @@map("users")
+  @@map("customers")
 }
 
 model Product {
-  id          String   @id @default(uuid())
-  name        String   @db.VarChar(100)
-  description String   @db.Text()
-  image       String   @db.VarChar(255)
-  price       Int
-  stock       Int
-  url_image   String   @db.VarChar(255)
-  is_valid    Boolean  @default(false)
-  userId      String   @db.VarChar(100)
-  User        User     @relation(fields: [userId], references: [id])
-  created_at  DateTime @default(now())
-  updated_at  DateTime @default(now())
-  categoryId  Int
-  Category    Category @relation(fields: [categoryId], references: [id])
-  Cart        Cart[]
+  id                String   @id @default(uuid())
+  name              String   @db.VarChar(100)
+  description       String   @db.Text()
+  price             Int
+  product_image     String   @db.VarChar(255)
+  product_url_image String   @db.VarChar(255)
+  seller_id         String   @db.VarChar(100)
+  Seller            Seller   @relation(fields: [seller_id], references: [id])
+  is_active         Boolean  @default(false)
+  created_at        DateTime @default(now())
+  updated_at        DateTime @default(now())
+  category_id       Int
+  Category          Category @relation(fields: [category_id], references: [id])
+  carts             Cart[]
 
   @@map("products")
 }
 
 model Category {
-  id        Int       @id @default(autoincrement())
-  name      String    @db.VarChar(100)
-  image     String    @db.VarChar(255)
-  url_image String    @db.VarChar(255)
-  products  Product[]
+  id       Int       @id @default(autoincrement())
+  name     String    @db.VarChar(100)
+  products Product[]
 
   @@map("categories")
 }
 
 model Cart {
-  id        String   @id @default(uuid())
-  productId String
-  userId    String
-  Product   Product? @relation(fields: [productId], references: [id])
-  User      User?    @relation(fields: [userId], references: [id])
+  id            String   @id @default(uuid())
+  total_product Int
+  total_price   Int
+  customer_id   String
+  product_id    String   @unique
+  created_at    DateTime @default(now())
+  updated_at    DateTime @default(now())
+  Product       Product  @relation(fields: [product_id], references: [id])
+  Customer      Customer @relation(fields: [customer_id], references: [id])
 
   @@map("carts")
 }
