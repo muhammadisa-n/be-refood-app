@@ -12,7 +12,4 @@ export const cartValidation = Joi.object({
     product_id: Joi.string().required().messages({
         'any.required': 'Field Product Id is Required',
     }),
-    customer_id: Joi.string().required().messages({
-        'any.required': 'Field Customer Id is Required',
-    }),
 })

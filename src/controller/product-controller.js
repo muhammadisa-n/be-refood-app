@@ -1,56 +1,26 @@
 import prisma from '../utils/prisma.js'
 export const getAllProduct = async (req, res) => {
-    let take = Number(req.query.take) || 0
-    let skip = Number(req.query.skip) || 0
+    const take = Number(req.query.take) || 8
+    const skip = Number(req.query.skip) || 0
     try {
-        if (take) {
-            const product = await prisma.product.findMany({
-                where: { is_valid: true },
-                take,
-                skip,
-                orderBy: { updated_at: 'desc' },
-                include: {
-                    Category: true,
-                },
-            })
-            let lastProduct = product[take - 1]
-            const myCursor = lastProduct.id
-            if (product.length === 0)
-                return res.status(200).json({
-                    message: 'Data Product is Empty',
-                    product,
-                    amount: product.length,
-                    status_code: 200,
-                })
-            res.status(200).json({
-                message: 'All Data Product Found',
-                product,
-                cursor: myCursor,
-                amount: product.length,
-                status_code: 200,
-            })
-        } else {
-            const product = await prisma.product.findMany({
-                where: { is_valid: true },
-                orderBy: { created_at: 'desc' },
-                include: {
-                    Category: true,
-                },
-            })
-            if (product.length === 0)
-                return res.status(200).json({
-                    message: 'Data Product is Empty',
-                    product,
-                    amount: product.length,
-                    status_code: 200,
-                })
-            res.status(200).json({
-                message: 'All Data Product Found',
-                product,
-                amount: product.length,
-                status_code: 200,
-            })
-        }
+        const products = await prisma.product.findMany({
+            where: { is_active: true },
+            take,
+            skip,
+            orderBy: { updated_at: 'desc' },
+            include: {
+                Category: true,
+            },
+        })
+        const totalProduct = await prisma.product.count()
+        let cursor = products[take - 1]?.id
+        res.status(200).json({
+            message: 'Success Get All Product',
+            products,
+            cursor: cursor,
+            totalProduct: totalProduct,
+            status_code: 200,
+        })
     } catch (error) {
         return res
             .status(501)
@@ -67,6 +37,8 @@ export const getDetailProduct = async (req, res) => {
     if (!product)
         return res
             .status(404)
-            .json({ message: 'Product not found', status_code: 404 })
-    return res.status(200).json({ product, status_code: 200 })
+            .json({ message: 'Data Product Not Found', status_code: 404 })
+    return res
+        .status(200)
+        .json({ message: 'Data Product Found', product, status_code: 200 })
 }

@@ -7,8 +7,8 @@ import {
     countCustomer,
     createCategory,
     deleteCategory,
-    getDetailCategory,
     updateCategory,
+    getDetailCategory,
 } from '../controller/admin-controller.js'
 import { isAdmin } from '../middleware/role-middleware.js'
 const adminRoutes = express.Router()
@@ -17,12 +17,6 @@ adminRoutes.get('/admin/products', AuthMiddleware, isAdmin, getAllProduct)
 
 adminRoutes.post('/admin/category', AuthMiddleware, isAdmin, createCategory)
 
-adminRoutes.get(
-    '/admin/category/:id',
-    AuthMiddleware,
-    isAdmin,
-    getDetailCategory
-)
 adminRoutes.put('/admin/category/:id', AuthMiddleware, isAdmin, updateCategory)
 adminRoutes.delete(
     '/admin/category/:id',
@@ -34,6 +28,12 @@ adminRoutes.delete(
 adminRoutes.get('/admin/count-seller', AuthMiddleware, isAdmin, countSeller)
 
 adminRoutes.get('/admin/count-customer', AuthMiddleware, isAdmin, countCustomer)
+adminRoutes.get(
+    '/admin/category/:id',
+    AuthMiddleware,
+    isAdmin,
+    getDetailCategory
+)
 
 adminRoutes.patch(
     '/admin/products/change-status/:id',

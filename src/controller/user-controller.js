@@ -4,6 +4,7 @@ import { sellerValidaton } from '../validation/seller-validation.js'
 import { customerValidaton } from '../validation/customer-validation.js'
 import path from 'path'
 import fs from 'fs'
+import cloudinary from '../utils/cloudinary.js'
 export const getUser = async (req, res) => {
     try {
         let user
@@ -78,54 +79,52 @@ export const updateUser = async (req, res) => {
         return res
             .status(404)
             .json({ message: 'User not found', status_code: 404 })
-    let filename = user.ava_image
-    let url_image = user.ava_url_image
-    if (req.files !== null && req.files.image) {
+    let imageId
+    let imageUrl
+    if (req.files === null) {
+        imageId = user.ava_image_id
+        imageUrl = user.ava_image_url
+    } else if (req.files.image) {
         const file = req.files.image
-        const fileSize = file.data.length
+        const fileSize = file.size
         const ext = path.extname(file.name)
-        const datenow = Date.now()
-        filename = datenow + file.md5 + ext
-        const userIdFolder = `./public/images/ava_images/${req.userData.user_id}`
-        if (!fs.existsSync(userIdFolder)) {
-            fs.mkdirSync(userIdFolder)
-        }
         const allowedType = ['.png', '.jpeg', '.jpg']
-        if (!allowedType.includes(ext.toLowerCase()))
-            return res
-                .status(422)
-                .json({ message: 'invalid type image', status_code: 422 })
-        if (fileSize > 10000000)
+        const imageFile = file.tempFilePath
+        if (!allowedType.includes(ext.toLowerCase())) {
+            fs.unlinkSync(imageFile)
             return res.status(422).json({
-                message: 'file too big minimum 10MB',
+                message:
+                    'Invalid Image Format. Only PNG, JPG, And JPEG Formats Are Allowed',
                 status_code: 422,
             })
-
-        const filepath = `${userIdFolder}/${user.image}`
-        if (fs.existsSync(filepath)) {
-            fs.unlinkSync(filepath)
         }
-
-        file.mv(`${userIdFolder}/${filename}`, (err) => {
-            if (err)
-                return res
-                    .status(500)
-                    .json({ message: err.message, status_code: 500 })
+        if (fileSize > 5 * 1024 * 1024) {
+            fs.unlinkSync(imageFile)
+            return res.status(422).json({
+                message: 'File To Big Maximum 5MB',
+                status_code: 422,
+            })
+        }
+        if (user.ava_image_id !== null) {
+            await cloudinary.uploader.destroy(user.ava_image_id)
+        }
+        const result = await cloudinary.uploader.upload(imageFile, {
+            folder: `user/images/${req.userData.user_id}`,
+            unique_filename: true,
+            tags: `user-image`,
         })
-
-        url_image = `${req.protocol}://${req.get(
-            'host'
-        )}/profile/images/${req.userData.user_id}/${filename}`
+        fs.unlinkSync(imageFile)
+        imageId = result.public_id
+        imageUrl = result.secure_url
     }
-
     try {
         if (role === 'Admin') {
             await prisma.admin.update({
                 where: { id: req.userData.user_id },
                 data: {
                     name: validate.value.name,
-                    ava_image: filename,
-                    ava_url_image: url_image,
+                    ava_image_id: imageId,
+                    ava_image_url: imageUrl,
                 },
             })
         } else if (role === 'Seller') {
@@ -141,8 +140,9 @@ export const updateUser = async (req, res) => {
                     postal_code: validate.value.postal_code,
                     address: validate.value.address,
                     no_hp: validate.value.no_hp,
-                    ava_image: filename,
-                    ava_url_image: url_image,
+                    ava_image_id: imageId,
+                    ava_image_url: imageUrl,
+                    updated_at: new Date(),
                 },
             })
         } else {
@@ -157,8 +157,9 @@ export const updateUser = async (req, res) => {
                     postal_code: validate.value.postal_code,
                     address: validate.value.address,
                     no_hp: validate.value.no_hp,
-                    ava_image: filename,
-                    ava_url_image: url_image,
+                    ava_image_id: imageId,
+                    ava_image_url: imageUrl,
+                    updated_at: new Date(),
                 },
             })
         }

@@ -1,6 +1,4 @@
 import prisma from '../utils/prisma.js'
-import path from 'path'
-import fs from 'fs'
 import { categoryValidation } from '../validation/category-validation.js'
 export const getAllProduct = async (req, res) => {
     let take = Number(req.query.take) || 0
@@ -15,19 +13,12 @@ export const getAllProduct = async (req, res) => {
                     Category: true,
                 },
             })
-            let lastproduct = product[take - 1]
-            const myCursor = lastproduct.id
-            if (product.length === 0)
-                return res.status(200).json({
-                    message: 'Data Product is Empty',
-                    product,
-                    amount: product.length,
-                    status_code: 200,
-                })
+            let lastProduct = product[take - 1]
+            const cursor = lastProduct.id
             res.status(200).json({
                 message: 'All Data Product Found',
                 product,
-                cursor: myCursor,
+                cursor: cursor,
                 amount: product.length,
                 status_code: 200,
             })
@@ -38,13 +29,6 @@ export const getAllProduct = async (req, res) => {
                     Category: true,
                 },
             })
-            if (product.length === 0)
-                return res.status(200).json({
-                    message: 'Data Product is Empty',
-                    product,
-                    amount: product.length,
-                    status_code: 200,
-                })
             res.status(200).json({
                 message: 'All Data Product Found',
                 product,
@@ -71,7 +55,7 @@ export const changeStatusProduct = async (req, res) => {
         await prisma.product.update({
             where: { id: req.params.id },
             data: {
-                is_valid: req.body.is_valid,
+                is_active: req.body.is_active,
             },
         })
         return res
@@ -129,6 +113,22 @@ export const createCategory = async (req, res) => {
             .json({ message: `${error.message}`, status_code: 501 })
     }
 }
+export const getDetailCategory = async (req, res) => {
+    const category = await prisma.category.findUnique({
+        where: { id: Number(req.params.id) },
+    })
+
+    if (!category) {
+        return res
+            .status(404)
+            .json({ message: 'Category Not Found', status_code: 404 })
+    }
+    return res.status(200).json({
+        message: 'All Data Category Found',
+        category,
+        status_code: 200,
+    })
+}
 export const updateCategory = async (req, res) => {
     const validate = categoryValidation.validate(req.body, {
         allowUnknown: false,
@@ -138,7 +138,7 @@ export const updateCategory = async (req, res) => {
         return res.status(400).json({ message: `${errors}`, status_code: 400 })
     }
     const category = await prisma.category.findFirst({
-        where: { id: parseInt(req.params.id) },
+        where: { id: Number(req.params.id) },
     })
     if (!category)
         return res

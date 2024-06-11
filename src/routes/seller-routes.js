@@ -7,6 +7,7 @@ import {
     updateProduct,
 } from '../controller/seller-controller.js'
 import { isSeller } from '../middleware/role-middleware.js'
+
 const sellerRoutes = express.Router()
 sellerRoutes.post('/seller/products', AuthMiddleware, isSeller, createProduct)
 sellerRoutes.get('/seller/products', AuthMiddleware, isSeller, getAllProduct)

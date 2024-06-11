@@ -34,10 +34,13 @@ export const createCart = async (req, res) => {
             const prevTotalProduct = existingCart.total_product
             const prevTotalPrice = existingCart.total_price
             await prisma.cart.update({
-                where: { product_id: req.body.product_id },
+                where: {
+                    product_id: req.body.product_id,
+                },
                 data: {
-                    quantity: prevTotalProduct + req.body.total_product,
+                    total_product: prevTotalProduct + req.body.total_product,
                     total_price: prevTotalPrice + req.body.total_price,
+                    customer_id: req.userData.user_id,
                     updated_at: new Date(),
                 },
             })

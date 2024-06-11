@@ -1,6 +1,8 @@
 import prisma from '../utils/prisma.js'
 import path from 'path'
 import fs from 'fs'
+import cloudinary from '../utils/cloudinary.js'
+
 import { productValidation } from '../validation/product-validation.js'
 export const getAllProduct = async (req, res) => {
     let take = Number(req.query.take) || 0
@@ -61,10 +63,10 @@ export const getAllProduct = async (req, res) => {
     }
 }
 export const createProduct = async (req, res) => {
-    if (req.files === null) {
+    if (!req.files || !req.files.image) {
         return res
             .status(400)
-            .json({ message: 'No File Uploaded', status_code: 400 })
+            .json({ message: 'No Image Uploaded', status_code: 400 })
     }
     const validate = productValidation.validate(req.body, {
         allowUnknown: false,
@@ -74,35 +76,34 @@ export const createProduct = async (req, res) => {
         return res.status(400).json({ message: `${errors}`, status_code: 400 })
     }
     const file = req.files.image
-    const fileSize = file.data.length
+    const fileSize = file.size
     const ext = path.extname(file.name)
-    const datenow = Date.now()
-    const filename = datenow + file.md5 + ext
-    const userIdFolder = `./public/images/products/${req.userData.user_id}`
-    if (!fs.existsSync(userIdFolder)) {
-        fs.mkdirSync(userIdFolder)
-    }
-    const product_url_image = `${req.protocol}://${req.get(
-        'host'
-    )}/images/products/${req.userData.user_id}/${filename}`
     const allowedType = ['.png', '.jpg', '.jpeg']
+    const imageFile = file.tempFilePath
     if (!allowedType.includes(ext.toLowerCase())) {
-        return res
-            .status(422)
-            .json({ message: 'invalid type image', status_code: 422 })
+        fs.unlinkSync(imageFile)
+        return res.status(422).json({
+            message:
+                'Invalid Image Format. Only PNG, JPG, And JPEG Formats Are Allowed',
+            status_code: 422,
+        })
     }
-    if (fileSize > 1000000)
-        return res
-            .status(422)
-            .json({ message: 'file to big minimum 10MB', status_code: 422 })
-
-    file.mv(`${userIdFolder}/${filename}`, async (err) => {
-        if (err)
-            return res
-                .status(500)
-                .json({ message: err.message, status_code: 500 })
-    })
+    if (fileSize > 5 * 1024 * 1024) {
+        fs.unlinkSync(imageFile)
+        console.log(imageFile)
+        return res.status(422).json({
+            message: 'File To Big Maximum 5MB',
+            status_code: 422,
+        })
+    }
     try {
+        const result = await cloudinary.uploader.upload(imageFile, {
+            folder: `products/images/${req.userData.user_id}`,
+            unique_filename: true,
+            tags: `product-image`,
+        })
+        fs.unlinkSync(imageFile)
+
         await prisma.product.create({
             data: {
                 name: validate.value.name,
@@ -110,11 +111,12 @@ export const createProduct = async (req, res) => {
                 price: validate.value.price,
                 stock: validate.value.stock,
                 category_id: validate.value.category_id,
-                product_image: filename,
-                product_url_image: product_url_image,
+                image_id: result.public_id,
+                image_url: result.secure_url,
                 seller_id: req.userData.user_id,
             },
         })
+
         return res
             .status(201)
             .json({ message: 'Product Created', status_code: 201 })
@@ -133,47 +135,48 @@ export const updateProduct = async (req, res) => {
         return res.status(400).json({ message: `${errors}`, status_code: 400 })
     }
     const product = await prisma.product.findFirst({
-        where: { id: req.params.id, user_id: req.userData.user_id },
+        where: { id: req.params.id, seller_id: req.userData.user_id },
     })
     if (!product)
         return res
             .status(404)
-            .json({ message: 'Product not found', status_code: 404 })
-    let filename = ''
+            .json({ message: 'Product Not Found', status_code: 404 })
+    let imageId
+    let imageUrl
     if (req.files === null) {
-        filename = product.product_image
-    } else {
+        imageId = product.image_id
+        imageUrl = product.image_url
+    } else if (req.files.image) {
         const file = req.files.image
-        const fileSize = file.data.length
+        const fileSize = file.size
         const ext = path.extname(file.name)
-        const datenow = Date.now()
-        filename = datenow + file.md5 + ext
-        const userIdFolder = `./public/images/products/${req.userData.user_id}`
-        if (!fs.existsSync(userIdFolder)) {
-            fs.mkdirSync(userIdFolder)
-        }
         const allowedType = ['.png', '.jpeg', '.jpg']
-        if (!allowedType.includes(ext.toLowerCase()))
-            return res
-                .status(422)
-                .json({ message: 'invalid type image', status_code: 422 })
-        if (fileSize > 10000000)
+        const imageFile = file.tempFilePath
+        if (!allowedType.includes(ext.toLowerCase())) {
+            fs.unlinkSync(imageFile)
             return res.status(422).json({
-                message: 'file to big minimum 10MB',
+                message:
+                    'Invalid Image Format. Only PNG, JPG, And JPEG Formats Are Allowed',
                 status_code: 422,
             })
-        const filepath = `${userIdFolder}/${product.product_image}`
-        fs.unlinkSync(filepath)
-        file.mv(`${userIdFolder}/${filename}`, (err) => {
-            if (err)
-                return res
-                    .status(500)
-                    .json({ message: err.message, status_code: 500 })
+        }
+        if (fileSize > 5 * 1024 * 1024) {
+            fs.unlinkSync(imageFile)
+            return res.status(422).json({
+                message: 'File To Big Maximum 5MB',
+                status_code: 422,
+            })
+        }
+        await cloudinary.uploader.destroy(product.image_id)
+        const result = await cloudinary.uploader.upload(imageFile, {
+            folder: `products/images/${req.userData.user_id}`,
+            unique_filename: true,
+            tags: `product-image`,
         })
+        fs.unlinkSync(imageFile)
+        imageId = result.public_id
+        imageUrl = result.secure_url
     }
-    const product_url_image = `${req.protocol}://${req.get(
-        'host'
-    )}/images/products/${req.userData.user_id}/${filename}`
     try {
         await prisma.product.update({
             where: { id: req.params.id },
@@ -182,8 +185,8 @@ export const updateProduct = async (req, res) => {
                 description: validate.value.description,
                 price: validate.value.price,
                 category_id: validate.value.category_id,
-                product_image: filename,
-                product_url_image: product_url_image,
+                image_id: imageId,
+                image_url: imageUrl,
                 updated_at: new Date(),
             },
         })
@@ -197,24 +200,15 @@ export const updateProduct = async (req, res) => {
     }
 }
 export const deleteProduct = async (req, res) => {
-    const product = await prisma.product.findUnique({
+    const product = await prisma.product.findFirst({
         where: { id: req.params.id, seller_id: req.userData.user_id },
     })
     if (!product)
         return res
             .status(404)
-            .json({ message: 'Product not found', status_code: 404 })
+            .json({ message: 'Product Not Found', status_code: 404 })
     try {
-        const filepath = `./public/images/products/${req.userData.user_id}/${product.image}`
-        fs.unlinkSync(filepath)
-        const userIdFolder = `./public/images/products${req.userData.user_id}`
-        const userProducts = await prisma.product.findMany({
-            where: { userId: req.userData.user_id },
-        })
-        if (userProducts.length === 1 && userProducts[0].id === req.params.id) {
-            fs.rmdirSync(userIdFolder)
-        }
-
+        await cloudinary.uploader.destroy(product.image_id)
         await prisma.product.delete({
             where: { id: req.params.id, seller_id: req.userData.user_id },
         })

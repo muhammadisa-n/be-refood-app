@@ -27,7 +27,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDoc, options))
 app.use(morgan('dev'))
 app.use(cookieParser())
 app.use(express.json())
-app.use(fileUpload())
+app.use(fileUpload({ useTempFiles: true, tempFileDir: './temp/' }))
 app.use(express.static('public'))
 app.use(router)
 app.listen(port, () => {

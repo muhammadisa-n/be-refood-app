@@ -2,10 +2,10 @@ import prisma from '../utils/prisma.js'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import {
-    sellerRegisterValidation,
-    customerRegisterValidation,
     forgotPasswordValidation,
+    emailValidation,
     loginValidation,
+    registerValidation,
 } from '../validation/auth-validation.js'
 import 'dotenv/config'
 import transporter from '../utils/nodemailer.js'
@@ -17,14 +17,15 @@ import path from 'path'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-export const sellerRegister = async (req, res) => {
-    const validate = sellerRegisterValidation.validate(req.body, {
+export const register = async (req, res) => {
+    const validate = registerValidation.validate(req.body, {
         allowUnknown: false,
     })
     if (validate.error) {
         let errors = validate.error.message
         return res.status(400).json({ message: `${errors}`, status_code: 400 })
     }
+
     let checkUser
 
     // cek admin
@@ -39,7 +40,6 @@ export const sellerRegister = async (req, res) => {
             status_code: 409,
         })
     }
-
     // cek seller
     checkUser = await prisma.seller.findFirst({
         where: {
@@ -78,7 +78,7 @@ export const sellerRegister = async (req, res) => {
     const hashPassword = await bcrypt.hash(validate.value.password, salt)
 
     const verifyEmailToken = jwt.sign(
-        { email: validate.value.email },
+        { email: validate.value.email, role: validate.value.role },
         process.env.TOKEN_SECRET,
         { expiresIn: '10m' }
     )
@@ -102,133 +102,42 @@ export const sellerRegister = async (req, res) => {
     await transporter.sendMail(mailOptions)
 
     try {
-        await prisma.seller.create({
-            data: {
-                name: validate.value.name,
-                description: validate.value.description,
-                email: validate.value.email,
-                password: hashPassword,
-                province: validate.value.province,
-                city: validate.value.city,
-                district: validate.value.district,
-                village: validate.value.village,
-                postal_code: validate.value.postal_code,
-                address: validate.value.address,
-                no_hp: validate.value.no_hp,
-                link_map_merchant: validate.value.link_map_merchant,
-                verified_at: null,
-            },
-        })
-        res.status(201).json({
-            message: 'Register Successfully, Please check your email to verify',
-            status_code: 201,
-        })
-    } catch (error) {
-        return res
-            .status(501)
-            .json({ message: `${error.message}`, status_code: 501 })
-    }
-}
-export const customerRegister = async (req, res) => {
-    const validate = customerRegisterValidation.validate(req.body, {
-        allowUnknown: false,
-    })
-    if (validate.error) {
-        let errors = validate.error.message
-        return res.status(400).json({ message: `${errors}`, status_code: 400 })
-    }
-    let checkUser
+        if (validate.value.role === 'Seller') {
+            await prisma.seller.create({
+                data: {
+                    name: validate.value.name,
+                    email: validate.value.email,
+                    password: hashPassword,
+                    province: validate.value.province,
+                    city: validate.value.city,
+                    district: validate.value.district,
+                    village: validate.value.village,
+                    postal_code: validate.value.postal_code,
+                    address: validate.value.address,
+                    no_hp: validate.value.no_hp,
+                    link_map_merchant: validate.value.link_map_merchant,
+                    verified_at: null,
+                },
+            })
+        } else {
+            await prisma.customer.create({
+                data: {
+                    name: validate.value.name,
+                    email: validate.value.email,
+                    password: hashPassword,
+                    province: validate.value.province,
+                    city: validate.value.city,
+                    district: validate.value.district,
+                    village: validate.value.village,
+                    postal_code: validate.value.postal_code,
+                    address: validate.value.address,
+                    no_hp: validate.value.no_hp,
+                    link_map_merchant: validate.value.link_map_merchant,
+                    verified_at: null,
+                },
+            })
+        }
 
-    // cek admin
-    checkUser = await prisma.admin.findFirst({
-        where: {
-            email: validate.value.email,
-        },
-    })
-    if (checkUser) {
-        return res.status(409).json({
-            message: 'Email or Number Phone Has Been Registered',
-            status_code: 409,
-        })
-    }
-
-    // cek seller
-    checkUser = await prisma.seller.findFirst({
-        where: {
-            email: validate.value.email,
-            no_hp: validate.value.no_hp,
-        },
-    })
-    if (checkUser) {
-        return res.status(409).json({
-            message: 'Email or Number Phone Has Been Registered',
-            status_code: 409,
-        })
-    }
-
-    // cek customer
-    checkUser = await prisma.customer.findFirst({
-        where: {
-            email: validate.value.email,
-            no_hp: validate.value.no_hp,
-        },
-    })
-    if (checkUser) {
-        return res.status(409).json({
-            message: 'Email or Number Phone Has Been Registered',
-            status_code: 409,
-        })
-    }
-
-    if (validate.value.password !== validate.value.confPassword) {
-        return res.status(400).json({
-            message: `Confirm Password Doesn't Match`,
-            status_code: 400,
-        })
-    }
-    const salt = 10
-    const hashPassword = await bcrypt.hash(validate.value.password, salt)
-
-    const verifyEmailToken = jwt.sign(
-        { email: validate.value.email },
-        process.env.TOKEN_SECRET,
-        { expiresIn: '10m' }
-    )
-    const url = `${process.env.CLIENT_URL}/verification-email?token=${verifyEmailToken}`
-    const templatePath = path.join(
-        __dirname,
-        '../templates/verify-email.mustache'
-    )
-
-    const template = fs.readFileSync(templatePath, 'utf-8')
-
-    const data = { url, name: validate.value.name }
-    const verifyEmailTemplate = mustache.render(template, data)
-    const mailOptions = {
-        from: process.env.MAIL_FROM,
-        to: validate.value.email,
-        subject: 'Email Verification',
-        html: verifyEmailTemplate,
-    }
-
-    await transporter.sendMail(mailOptions)
-
-    try {
-        await prisma.customer.create({
-            data: {
-                name: validate.value.name,
-                email: validate.value.email,
-                password: hashPassword,
-                province: validate.value.province,
-                city: validate.value.city,
-                district: validate.value.district,
-                village: validate.value.village,
-                postal_code: validate.value.postal_code,
-                address: validate.value.address,
-                no_hp: validate.value.no_hp,
-                verified_at: null,
-            },
-        })
         res.status(201).json({
             message: 'Register Successfully, Please check your email to verify',
             status_code: 201,
@@ -240,7 +149,7 @@ export const customerRegister = async (req, res) => {
     }
 }
 
-export const userLogin = async (req, res) => {
+export const login = async (req, res) => {
     const validate = loginValidation.validate(req.body, { allowUnknown: false })
     if (validate.error) {
         let errors = validate.error.message
@@ -249,48 +158,52 @@ export const userLogin = async (req, res) => {
     let user
     let role
 
+    // Cek Admin
     user = await prisma.admin.findFirst({
-        where: {
-            email: validate.value.email,
-        },
+        where: { email: validate.value.email },
     })
     if (user) {
         role = 'Admin'
     }
 
-    user = await prisma.seller.findFirst({
-        where: {
-            email: validate.value.email,
-        },
-    })
-    if (user) {
-        role = 'Seller'
+    // Cek Seller
+    if (!user) {
+        user = await prisma.seller.findFirst({
+            where: { email: validate.value.email },
+        })
+        if (user) {
+            role = 'Seller'
+        }
     }
 
-    user = await prisma.customer.findFirst({
-        where: {
-            email: validate.value.email,
-        },
-    })
-    if (user) {
-        role = 'Customer'
+    // Cek Customer
+    if (!user) {
+        user = await prisma.customer.findFirst({
+            where: { email: validate.value.email },
+        })
+        if (user) {
+            role = 'Customer'
+        }
     }
 
-    if (!user)
+    if (!user) {
         return res.status(401).json({
             message: 'Wrong email or password',
             status_code: 401,
         })
+    }
 
     const match = await bcrypt.compare(validate.value.password, user.password)
-    if (!match)
-        return res
-            .status(401)
-            .json({ message: 'Wrong email or password', status_code: 401 })
+    if (!match) {
+        return res.status(401).json({
+            message: 'Wrong email or password',
+            status_code: 401,
+        })
+    }
 
     if (!user.verified_at) {
         const verifyEmailToken = jwt.sign(
-            { email: validate.value.email },
+            { email: validate.value.email, role: role },
             process.env.TOKEN_SECRET,
             { expiresIn: '10m' }
         )
@@ -324,25 +237,26 @@ export const userLogin = async (req, res) => {
         user_name: user.name,
         user_role: role,
     }
-
+    console.log(role)
     const access_token = jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, {
         expiresIn: '5m',
     })
     const refresh_token = jwt.sign(payload, process.env.REFRESH_TOKEN_SECRET, {
         expiresIn: '1d',
     })
+
     try {
         if (role === 'Admin') {
             await prisma.admin.update({
                 data: { refresh_token },
                 where: { id: user.id },
             })
-        } else if (role === 'seller') {
+        } else if (role === 'Seller') {
             await prisma.seller.update({
                 data: { refresh_token },
                 where: { id: user.id },
             })
-        } else if (role === 'customer') {
+        } else if (role === 'Customer') {
             await prisma.customer.update({
                 data: { refresh_token },
                 where: { id: user.id },
@@ -363,7 +277,7 @@ export const userLogin = async (req, res) => {
             .json({ message: `${error.message}`, status_code: 501 })
     }
 }
-export const userLogout = async (req, res) => {
+export const logout = async (req, res) => {
     const refreshToken = req.cookies.refresh_token
     if (!refreshToken)
         return res.status(401).json({
@@ -381,10 +295,10 @@ export const userLogout = async (req, res) => {
         },
     })
     if (user) {
-        role = 'admin'
+        role = 'Admin'
     }
 
-    // cek  deller
+    // cek  seller
     if (!user) {
         user = await prisma.seller.findFirst({
             where: {
@@ -392,7 +306,7 @@ export const userLogout = async (req, res) => {
             },
         })
         if (user) {
-            role = 'seller'
+            role = 'Seller'
         }
     }
 
@@ -462,7 +376,7 @@ export const refreshToken = async (req, res) => {
             },
         })
         if (user) {
-            role = 'admin'
+            role = 'Admin'
         }
 
         // cek seller
@@ -473,7 +387,7 @@ export const refreshToken = async (req, res) => {
                 },
             })
             if (user) {
-                role = 'seller'
+                role = 'Seller'
             }
         }
 
@@ -485,7 +399,7 @@ export const refreshToken = async (req, res) => {
                 },
             })
             if (user) {
-                role = 'customer'
+                role = 'Customer'
             }
         }
         if (!user)
@@ -503,7 +417,7 @@ export const refreshToken = async (req, res) => {
                 user_id: user.id,
                 user_email: user.email,
                 user_name: user.name,
-                user_role: user.role,
+                user_role: role,
             }
             const accessToken = jwt.sign(
                 payload,
@@ -551,11 +465,6 @@ export const verifyEmail = async (req, res) => {
                     email: email,
                 },
             })
-        }
-        if (!user) {
-            return res
-                .status(404)
-                .json({ message: 'Email Not Registered', status_code: 404 })
         }
         if (user.verified_at) {
             return res

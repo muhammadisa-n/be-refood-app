@@ -18,8 +18,8 @@ model Admin {
   name          String    @db.VarChar(100)
   email         String    @unique @db.VarChar(100)
   password      String    @db.VarChar(100)
-  ava_image     String?   @db.VarChar(255)
-  ava_url_image String?   @db.VarChar(255)
+  ava_image_id  String?   @db.VarChar(255)
+  ava_image_url String?   @db.VarChar(255)
   refresh_token String?   @db.VarChar(500)
   verified_at   DateTime? @default(now())
 
@@ -29,7 +29,7 @@ model Admin {
 model Seller {
   id                String    @id @default(uuid())
   name              String    @db.VarChar(100)
-  description       String    @db.Text()
+  description       String?   @db.Text()
   email             String    @unique @db.VarChar(100)
   password          String    @db.VarChar(100)
   province          String    @db.VarChar(100)
@@ -39,11 +39,9 @@ model Seller {
   postal_code       String    @db.VarChar(100)
   address           String    @db.VarChar(255)
   no_hp             String    @unique @db.VarChar(15)
-  ava_image         String?   @db.VarChar(255)
-  ava_url_image     String?   @db.VarChar(255)
-  link_map_merchant String    @db.VarChar(100)
-  product_image     String?   @db.VarChar(255)
-  product_url_image String?   @db.VarChar(255)
+  ava_image_id      String?   @db.VarChar(255)
+  ava_image_url     String?   @db.VarChar(255)
+  link_map_merchant String?   @db.VarChar(100)
   is_active         Boolean   @default(false)
   verified_at       DateTime?
   refresh_token     String?   @db.VarChar(500)
@@ -66,8 +64,8 @@ model Customer {
   postal_code   String    @db.VarChar(100)
   address       String    @db.VarChar(255)
   no_hp         String    @unique @db.VarChar(15)
-  ava_image     String?   @db.VarChar(255)
-  ava_url_image String?   @db.VarChar(255)
+  ava_image_id  String?   @db.VarChar(255)
+  ava_image_url String?   @db.VarChar(255)
   verified_at   DateTime?
   refresh_token String?   @db.VarChar(500)
   created_at    DateTime  @default(now())
@@ -78,20 +76,20 @@ model Customer {
 }
 
 model Product {
-  id                String   @id @default(uuid())
-  name              String   @db.VarChar(100)
-  description       String   @db.Text()
-  price             Int
-  product_image     String   @db.VarChar(255)
-  product_url_image String   @db.VarChar(255)
-  seller_id         String   @db.VarChar(100)
-  Seller            Seller   @relation(fields: [seller_id], references: [id])
-  is_active         Boolean  @default(false)
-  created_at        DateTime @default(now())
-  updated_at        DateTime @default(now())
-  category_id       Int
-  Category          Category @relation(fields: [category_id], references: [id])
-  carts             Cart[]
+  id          String   @id @default(uuid())
+  name        String   @db.VarChar(100)
+  description String   @db.Text()
+  price       Int
+  image_id    String   @db.VarChar(255)
+  image_url   String   @db.VarChar(255)
+  seller_id   String   @db.VarChar(100)
+  Seller      Seller   @relation(fields: [seller_id], references: [id])
+  is_active   Boolean  @default(false)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @default(now())
+  category_id Int
+  Category    Category @relation(fields: [category_id], references: [id])
+  carts       Cart[]
 
   @@map("products")
 }
