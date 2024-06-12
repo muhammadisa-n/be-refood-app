@@ -27,6 +27,7 @@ export const register = async (req, res) => {
     }
 
     let checkUser
+    let checkNoHpUser
 
     // cek admin
     checkUser = await prisma.admin.findFirst({
@@ -36,7 +37,7 @@ export const register = async (req, res) => {
     })
     if (checkUser) {
         return res.status(409).json({
-            message: 'Email or Number Phone Has Been Registered',
+            message: 'Email  Has Been Registered',
             status_code: 409,
         })
     }
@@ -49,7 +50,7 @@ export const register = async (req, res) => {
     })
     if (checkUser) {
         return res.status(409).json({
-            message: 'Email or Number Phone Has Been Registered',
+            message: 'Email  Has Been Registered',
             status_code: 409,
         })
     }
@@ -63,7 +64,30 @@ export const register = async (req, res) => {
     })
     if (checkUser) {
         return res.status(409).json({
-            message: 'Email or Number Phone Has Been Registered',
+            message: 'Email Has Been Registered',
+            status_code: 409,
+        })
+    }
+    // check seller user
+    checkNoHpUser = await prisma.seller.findFirst({
+        where: {
+            no_hp: validate.value.no_hp,
+        },
+    })
+    if (checkNoHpUser) {
+        return res.status(409).json({
+            message: 'Number Phone Has Been Registered',
+            status_code: 409,
+        })
+    }
+    checkNoHpUser = await prisma.customer.findFirst({
+        where: {
+            no_hp: validate.value.no_hp,
+        },
+    })
+    if (checkNoHpUser) {
+        return res.status(409).json({
+            message: 'Number Phone Has Been Registered',
             status_code: 409,
         })
     }
