@@ -1,41 +1,41 @@
 import prisma from '../utils/prisma.js'
 import { categoryValidation } from '../validation/category-validation.js'
 export const getAllProduct = async (req, res) => {
-    let take = Number(req.query.take) || 0
-    let skip = Number(req.query.skip) || 0
+    const page = Number(req.query.page) || 1
+    const skip = (page - 1) * Number(req.query.size)
+    const filters = []
+    if (req.query.search) {
+        filters.push({
+            name: {
+                contains: req.query.search,
+            },
+        })
+    }
     try {
-        if (take) {
-            const product = await prisma.product.findMany({
-                take,
-                skip,
-                orderBy: { updated_at: 'desc' },
-                include: {
-                    Category: true,
-                },
-            })
-            let lastProduct = product[take - 1]
-            const cursor = lastProduct.id
-            res.status(200).json({
-                message: 'All Data Product Found',
-                product,
-                cursor: cursor,
-                amount: product.length,
-                status_code: 200,
-            })
-        } else {
-            const product = await prisma.product.findMany({
-                orderBy: { created_at: 'desc' },
-                include: {
-                    Category: true,
-                },
-            })
-            res.status(200).json({
-                message: 'All Data Product Found',
-                product,
-                amount: product.length,
-                status_code: 200,
-            })
-        }
+        const products = await prisma.product.findMany({
+            where: { AND: filters },
+            take: Number(req.query.size),
+            skip: skip,
+            orderBy: { updated_at: 'desc' },
+            include: {
+                Category: true,
+            },
+        })
+        const totalProduct = await prisma.product.count({
+            where: {
+                AND: filters,
+            },
+        })
+        res.status(200).json({
+            message: 'Success Get  Product',
+            products,
+            total_product: totalProduct,
+            paging: {
+                current_page: page,
+                total_page: Math.ceil(totalProduct / req.query.size),
+            },
+            status_code: 200,
+        })
     } catch (error) {
         return res
             .status(501)

@@ -5,57 +5,44 @@ import cloudinary from '../utils/cloudinary.js'
 
 import { productValidation } from '../validation/product-validation.js'
 export const getAllProduct = async (req, res) => {
-    let take = Number(req.query.take) || 0
-    let skip = Number(req.query.skip) || 0
+    const page = Number(req.query.page) || 1
+    const skip = (page - 1) * Number(req.query.size)
+    const filters = []
+    filters.push({
+        seller_id: req.userData.user_id,
+    })
+    if (req.query.search) {
+        filters.push({
+            name: {
+                contains: req.query.search,
+            },
+        })
+    }
     try {
-        if (take) {
-            const product = await prisma.product.findMany({
-                where: { seller_id: req.userData.user_id },
-                take,
-                skip,
-                orderBy: { updated_at: 'desc' },
-                include: {
-                    Category: true,
-                },
-            })
-            let lastproduct = product[take - 1]
-            const myCursor = lastproduct.id
-            if (product.length === 0)
-                return res.status(200).json({
-                    message: 'Data Product is Empty',
-                    product,
-                    amount: product.length,
-                    status_code: 200,
-                })
-            res.status(200).json({
-                message: 'All Data Product Found',
-                product,
-                cursor: myCursor,
-                amount: product.length,
-                status_code: 200,
-            })
-        } else {
-            const product = await prisma.product.findMany({
-                orderBy: { created_at: 'desc' },
-                where: { seller_id: req.userData.user_id },
-                include: {
-                    Category: true,
-                },
-            })
-            if (product.length === 0)
-                return res.status(200).json({
-                    message: 'Data Product is Empty',
-                    product,
-                    amount: product.length,
-                    status_code: 200,
-                })
-            res.status(200).json({
-                message: 'All Data Product Found',
-                product,
-                amount: product.length,
-                status_code: 200,
-            })
-        }
+        const products = await prisma.product.findMany({
+            where: { AND: filters },
+            take: Number(req.query.size),
+            skip: skip,
+            orderBy: { updated_at: 'desc' },
+            include: {
+                Category: true,
+            },
+        })
+        const totalProduct = await prisma.product.count({
+            where: {
+                AND: filters,
+            },
+        })
+        res.status(200).json({
+            message: 'Success Get  Product',
+            products,
+            total_product: totalProduct,
+            paging: {
+                current_page: page,
+                total_page: Math.ceil(totalProduct / req.query.size),
+            },
+            status_code: 200,
+        })
     } catch (error) {
         return res
             .status(501)
