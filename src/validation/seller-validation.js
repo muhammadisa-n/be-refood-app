@@ -27,7 +27,11 @@ export const sellerValidaton = Joi.object({
         'string.min': 'Field Number Phone min 12 character',
         'string.max': 'Field Number Phone max 15 character',
     }),
-    link_map_merchant: Joi.string().optional().max(100).messages({
-        'string.max': 'Field link Map max 100 character',
+})
+export const VerificationSellerValidation = Joi.object({
+    link_map: Joi.string().required().max(255).messages({
+        'any.required': 'Field Link Map is Required',
+        'string.empty': 'Field Link Map must be filled in',
+        'string.max': 'Field Link Map max 255 character',
     }),
 })

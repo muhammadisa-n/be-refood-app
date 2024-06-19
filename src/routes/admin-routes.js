@@ -2,13 +2,15 @@ import express from 'express'
 import { AuthMiddleware } from '../middleware/auth-middleware.js'
 import {
     getAllProduct,
-    changeStatusProduct,
     countSeller,
     countCustomer,
+    countProduct,
     createCategory,
     deleteCategory,
     updateCategory,
     getDetailCategory,
+    activateProduct,
+    activateSeller,
 } from '../controller/admin-controller.js'
 import { isAdmin } from '../middleware/role-middleware.js'
 const adminRoutes = express.Router()
@@ -25,9 +27,15 @@ adminRoutes.delete(
     deleteCategory
 )
 
-adminRoutes.get('/admin/count-seller', AuthMiddleware, isAdmin, countSeller)
+adminRoutes.get('/admin/count-sellers', AuthMiddleware, isAdmin, countSeller)
 
-adminRoutes.get('/admin/count-customer', AuthMiddleware, isAdmin, countCustomer)
+adminRoutes.get(
+    '/admin/count-customers',
+    AuthMiddleware,
+    isAdmin,
+    countCustomer
+)
+adminRoutes.get('/admin/count-products', AuthMiddleware, isAdmin, countProduct)
 adminRoutes.get(
     '/admin/category/:id',
     AuthMiddleware,
@@ -36,10 +44,16 @@ adminRoutes.get(
 )
 
 adminRoutes.patch(
-    '/admin/products/change-status/:id',
+    '/admin/activate/products/:id',
     AuthMiddleware,
     isAdmin,
-    changeStatusProduct
+    activateProduct
+)
+adminRoutes.patch(
+    '/admin/activate/seller/:id',
+    AuthMiddleware,
+    isAdmin,
+    activateSeller
 )
 
 export default adminRoutes

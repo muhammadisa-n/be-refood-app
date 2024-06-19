@@ -42,7 +42,7 @@ export const getAllProduct = async (req, res) => {
             .json({ message: `${error.message}`, status_code: 501 })
     }
 }
-export const changeStatusProduct = async (req, res) => {
+export const activateProduct = async (req, res) => {
     try {
         const product = await prisma.product.findFirst({
             where: { id: req.params.id },
@@ -60,18 +60,35 @@ export const changeStatusProduct = async (req, res) => {
         })
         return res
             .status(200)
-            .json({ message: 'Status Product Change', status_code: 200 })
+            .json({ message: 'Product Activated', status_code: 200 })
     } catch (error) {
         return res
             .status(501)
             .json({ message: `${error.message}`, status_code: 501 })
     }
 }
-
+export const countProduct = async (req, res) => {
+    try {
+        const totalProduct = await prisma.product.count()
+        res.status(200).json({
+            message: 'Success Count Product',
+            total_product: totalProduct,
+            status_code: 200,
+        })
+    } catch (error) {
+        return res
+            .status(501)
+            .json({ message: `${error.message}`, status_code: 501 })
+    }
+}
 export const countSeller = async (req, res) => {
     try {
-        const sellers = await prisma.seller.count()
-        return res.status(200).json({ amount: sellers, status_code: 200 })
+        const totalSeller = await prisma.seller.count()
+        return res.status(200).json({
+            message: 'Success Count Seller',
+            total_seller: totalSeller,
+            status_code: 200,
+        })
     } catch (error) {
         return res
             .status(501)
@@ -80,8 +97,12 @@ export const countSeller = async (req, res) => {
 }
 export const countCustomer = async (req, res) => {
     try {
-        const customer = await prisma.customer.count()
-        return res.status(200).json({ amount: customer, status_code: 200 })
+        const totalCustomer = await prisma.customer.count()
+        return res.status(200).json({
+            message: 'Success Count Customer',
+            total_customer: totalCustomer,
+            status_code: 200,
+        })
     } catch (error) {
         return res
             .status(501)
@@ -183,6 +204,32 @@ export const deleteCategory = async (req, res) => {
         return res
             .status(200)
             .json({ message: 'Category Deleted', status_code: 200 })
+    } catch (error) {
+        return res
+            .status(501)
+            .json({ message: `${error.message}`, status_code: 501 })
+    }
+}
+
+export const activateSeller = async (req, res) => {
+    try {
+        const seller = await prisma.seller.findFirst({
+            where: { id: req.params.id },
+        })
+        if (!seller) {
+            return res
+                .status(404)
+                .json({ message: 'Seller Not Found', status_code: 404 })
+        }
+        await prisma.seller.update({
+            where: { id: req.params.id },
+            data: {
+                is_active: req.body.is_active,
+            },
+        })
+        return res
+            .status(200)
+            .json({ message: 'Seller Activated', status_code: 200 })
     } catch (error) {
         return res
             .status(501)

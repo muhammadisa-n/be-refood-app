@@ -139,7 +139,6 @@ export const register = async (req, res) => {
                     postal_code: validate.value.postal_code,
                     address: validate.value.address,
                     no_hp: validate.value.no_hp,
-                    link_map_merchant: validate.value.link_map_merchant,
                     verified_at: null,
                 },
             })
