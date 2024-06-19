@@ -11,14 +11,16 @@ import {
     getDetailCategory,
     activateProduct,
     activateSeller,
+    getAllSeller,
+    getAllCategory,
 } from '../controller/admin-controller.js'
 import { isAdmin } from '../middleware/role-middleware.js'
 const adminRoutes = express.Router()
 
+adminRoutes.get('/admin/sellers', AuthMiddleware, isAdmin, getAllSeller)
 adminRoutes.get('/admin/products', AuthMiddleware, isAdmin, getAllProduct)
-
+adminRoutes.get('/admin/category', AuthMiddleware, isAdmin, getAllCategory)
 adminRoutes.post('/admin/category', AuthMiddleware, isAdmin, createCategory)
-
 adminRoutes.put('/admin/category/:id', AuthMiddleware, isAdmin, updateCategory)
 adminRoutes.delete(
     '/admin/category/:id',
@@ -26,9 +28,7 @@ adminRoutes.delete(
     isAdmin,
     deleteCategory
 )
-
 adminRoutes.get('/admin/count-sellers', AuthMiddleware, isAdmin, countSeller)
-
 adminRoutes.get(
     '/admin/count-customers',
     AuthMiddleware,
@@ -42,7 +42,6 @@ adminRoutes.get(
     isAdmin,
     getDetailCategory
 )
-
 adminRoutes.patch(
     '/admin/activate/products/:id',
     AuthMiddleware,

@@ -42,6 +42,84 @@ export const getAllProduct = async (req, res) => {
             .json({ message: `${error.message}`, status_code: 501 })
     }
 }
+export const getAllCategory = async (req, res) => {
+    const page = Number(req.query.page) || 1
+    const skip = (page - 1) * Number(req.query.size)
+    const filters = []
+    if (req.query.search) {
+        filters.push({
+            name: {
+                contains: req.query.search,
+            },
+        })
+    }
+    try {
+        const categories = await prisma.category.findMany({
+            where: { AND: filters },
+            take: Number(req.query.size),
+            skip: skip,
+            orderBy: { name: 'desc' },
+        })
+        const totalCategory = await prisma.category.count({
+            where: {
+                AND: filters,
+            },
+        })
+        res.status(200).json({
+            message: 'Success Get  Seller',
+            categories,
+            total_category: totalCategory,
+            paging: {
+                current_page: page,
+                total_page: Math.ceil(totalCategory / req.query.size),
+            },
+            status_code: 200,
+        })
+    } catch (error) {
+        return res
+            .status(501)
+            .json({ message: `${error.message}`, status_code: 501 })
+    }
+}
+export const getAllSeller = async (req, res) => {
+    const page = Number(req.query.page) || 1
+    const skip = (page - 1) * Number(req.query.size)
+    const filters = []
+    if (req.query.search) {
+        filters.push({
+            name: {
+                contains: req.query.search,
+            },
+        })
+    }
+    try {
+        const sellers = await prisma.seller.findMany({
+            where: { AND: filters },
+            take: Number(req.query.size),
+            skip: skip,
+            orderBy: { updated_at: 'desc' },
+        })
+        const totalSeller = await prisma.seller.count({
+            where: {
+                AND: filters,
+            },
+        })
+        res.status(200).json({
+            message: 'Success Get  Seller',
+            sellers,
+            total_seller: totalSeller,
+            paging: {
+                current_page: page,
+                total_page: Math.ceil(totalSeller / req.query.size),
+            },
+            status_code: 200,
+        })
+    } catch (error) {
+        return res
+            .status(501)
+            .json({ message: `${error.message}`, status_code: 501 })
+    }
+}
 export const activateProduct = async (req, res) => {
     try {
         const product = await prisma.product.findFirst({

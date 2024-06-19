@@ -71,6 +71,15 @@ export const createProduct = async (req, res) => {
             .status(400)
             .json({ message: 'No Image Uploaded', status_code: 400 })
     }
+    const seller = await prisma.seller.findFirst({
+        where: { id: req.userData.user_id },
+    })
+    if (seller.is_active === false) {
+        return res.status(403).json({
+            message: 'Access Forbidden ,You must Activate Your Account',
+            status_code: 403,
+        })
+    }
     const validate = productValidation.validate(req.body, {
         allowUnknown: false,
     })
@@ -130,6 +139,15 @@ export const createProduct = async (req, res) => {
     }
 }
 export const updateProduct = async (req, res) => {
+    const seller = await prisma.seller.findFirst({
+        where: { id: req.userData.user_id },
+    })
+    if (seller.is_active === false) {
+        return res.status(403).json({
+            message: 'Access Forbidden ,You must Activate Your Account',
+            status_code: 403,
+        })
+    }
     const validate = productValidation.validate(req.body, {
         allowUnknown: true,
     })
@@ -203,6 +221,15 @@ export const updateProduct = async (req, res) => {
     }
 }
 export const deleteProduct = async (req, res) => {
+    const seller = await prisma.seller.findFirst({
+        where: { id: req.userData.user_id },
+    })
+    if (seller.is_active === false) {
+        return res.status(403).json({
+            message: 'Access Forbidden ,You must Activate Your Account',
+            status_code: 403,
+        })
+    }
     const product = await prisma.product.findFirst({
         where: { id: req.params.id, seller_id: req.userData.user_id },
     })
@@ -258,6 +285,18 @@ export const verifySeller = async (req, res) => {
             message: 'File To Big Maximum 5MB',
             status_code: 422,
         })
+    }
+    const seller = await prisma.seller.findFirst({
+        where: { id: req.userData.user_id },
+    })
+    if (seller.sample_image_product_id !== null) {
+        try {
+            await cloudinary.uploader.destroy(seller.sample_image_product_id)
+        } catch (error) {
+            return res
+                .status(501)
+                .json({ message: `${error.message}`, status_code: 501 })
+        }
     }
     try {
         const result = await cloudinary.uploader.upload(imageFile, {
