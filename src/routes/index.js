@@ -5,7 +5,7 @@ import productRoutes from './product-routes.js'
 import AdminRoutes from './admin-routes.js'
 import SellerRoutes from './seller-routes.js'
 import CategoryRoutes from './category-routes.js'
-import CartRoutes from './cart-routes.js'
+import CustomerRoutes from './customer-routes.js'
 
 const router = express.Router()
 
@@ -27,7 +27,7 @@ router.get('/api', (req, res) => {
 router.use('/api/', AuthRoutes)
 router.use('/api/', AdminRoutes)
 router.use('/api/', SellerRoutes)
-router.use('/api/', CartRoutes)
+router.use('/api/', CustomerRoutes)
 router.use('/api/', CategoryRoutes)
 router.use('/api/', userRoutes)
 router.use('/api/', productRoutes)

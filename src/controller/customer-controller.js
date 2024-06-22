@@ -1,6 +1,7 @@
-import prisma from '../utils/prisma.js'
 import { cartValidation } from '../validation/cart-validation.js'
+import prisma from '../utils/prisma.js'
 
+// Cart Section
 export const getAllCart = async (req, res) => {
     const carts = await prisma.cart.findMany({
         where: { customer_id: req.userData.user_id },

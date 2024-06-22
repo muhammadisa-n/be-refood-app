@@ -73,6 +73,7 @@ model Customer {
   created_at    DateTime  @default(now())
   updated_at    DateTime  @default(now())
   carts         Cart[]
+  orders        Order[]
 
   @@map("customers")
 }
@@ -92,6 +93,7 @@ model Product {
   category_id Int
   Category    Category @relation(fields: [category_id], references: [id])
   carts       Cart[]
+  orders      Order[]
 
   @@map("products")
 }
@@ -116,4 +118,29 @@ model Cart {
   Customer      Customer @relation(fields: [customer_id], references: [id])
 
   @@map("carts")
+}
+
+enum order_status {
+  SUCCESS
+  PROCESS
+  PENDING
+  FAILED
+}
+
+model Order {
+  id              String       @id @db.VarChar(191)
+  product_id      String
+  customer_id     String
+  total_product   Int
+  total_price     Int
+  payment_status  order_status @default(PENDING)
+  delivery_status order_status @default(PENDING)
+  order_token     String?      @db.VarChar(255)
+  link_file       String?      @db.VarChar(255)
+  created_at      DateTime     @default(now())
+  updated_at      DateTime     @default(now())
+  Product         Product      @relation(fields: [product_id], references: [id])
+  Customer        Customer     @relation(fields: [customer_id], references: [id])
+
+  @@map("orders")
 }
