@@ -6,7 +6,8 @@ import { productValidation } from '../validation/product-validation.js'
 import { VerificationSellerValidation } from '../validation/seller-validation.js'
 export const getAllProduct = async (req, res) => {
     const page = Number(req.query.page) || 1
-    const skip = (page - 1) * Number(req.query.size)
+    const take = Number(req.query.take) || 10
+    const skip = (page - 1) * take
     const filters = []
     filters.push({
         seller_id: req.userData.user_id,
@@ -21,7 +22,7 @@ export const getAllProduct = async (req, res) => {
     try {
         const products = await prisma.product.findMany({
             where: { AND: filters },
-            take: Number(req.query.size),
+            take: take,
             skip: skip,
             orderBy: { updated_at: 'desc' },
             include: {
@@ -39,14 +40,14 @@ export const getAllProduct = async (req, res) => {
             total_product: totalProduct,
             paging: {
                 current_page: page,
-                total_page: Math.ceil(totalProduct / req.query.size),
+                total_page: Math.ceil(totalProduct / take),
             },
             status_code: 200,
         })
     } catch (error) {
         return res
-            .status(501)
-            .json({ message: `${error.message}`, status_code: 501 })
+            .status(500)
+            .json({ message: `${error.message}`, status_code: 500 })
     }
 }
 export const countProduct = async (req, res) => {
@@ -61,8 +62,8 @@ export const countProduct = async (req, res) => {
         })
     } catch (error) {
         return res
-            .status(501)
-            .json({ message: `${error.message}`, status_code: 501 })
+            .status(500)
+            .json({ message: `${error.message}`, status_code: 500 })
     }
 }
 export const createProduct = async (req, res) => {
@@ -134,8 +135,8 @@ export const createProduct = async (req, res) => {
             .json({ message: 'Product Created', status_code: 201 })
     } catch (error) {
         return res
-            .status(501)
-            .json({ message: `${error.message}`, status_code: 501 })
+            .status(500)
+            .json({ message: `${error.message}`, status_code: 500 })
     }
 }
 export const updateProduct = async (req, res) => {
@@ -216,8 +217,8 @@ export const updateProduct = async (req, res) => {
             .json({ message: 'Product Updated', status_code: 200 })
     } catch (error) {
         return res
-            .status(501)
-            .json({ message: `${error.message}`, status_code: 501 })
+            .status(500)
+            .json({ message: `${error.message}`, status_code: 500 })
     }
 }
 export const deleteProduct = async (req, res) => {
@@ -247,8 +248,8 @@ export const deleteProduct = async (req, res) => {
             .json({ message: 'Product Deleted', status_code: 200 })
     } catch (error) {
         return res
-            .status(501)
-            .json({ message: `${error.message}`, status_code: 501 })
+            .status(500)
+            .json({ message: `${error.message}`, status_code: 500 })
     }
 }
 
@@ -294,8 +295,8 @@ export const verifySeller = async (req, res) => {
             await cloudinary.uploader.destroy(seller.sample_image_product_id)
         } catch (error) {
             return res
-                .status(501)
-                .json({ message: `${error.message}`, status_code: 501 })
+                .status(500)
+                .json({ message: `${error.message}`, status_code: 500 })
         }
     }
     try {
@@ -318,7 +319,7 @@ export const verifySeller = async (req, res) => {
         return res.status(200).json({ message: 'Success', status_code: 200 })
     } catch (error) {
         return res
-            .status(501)
-            .json({ message: `${error.message}`, status_code: 501 })
+            .status(500)
+            .json({ message: `${error.message}`, status_code: 500 })
     }
 }

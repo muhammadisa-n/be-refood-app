@@ -19,37 +19,42 @@ const adminRoutes = express.Router()
 
 adminRoutes.get('/admin/sellers', AuthMiddleware, isAdmin, getAllSeller)
 adminRoutes.get('/admin/products', AuthMiddleware, isAdmin, getAllProduct)
-adminRoutes.get('/admin/category', AuthMiddleware, isAdmin, getAllCategory)
-adminRoutes.post('/admin/category', AuthMiddleware, isAdmin, createCategory)
-adminRoutes.put('/admin/category/:id', AuthMiddleware, isAdmin, updateCategory)
+adminRoutes.get('/admin/categories', AuthMiddleware, isAdmin, getAllCategory)
+adminRoutes.post('/admin/categories', AuthMiddleware, isAdmin, createCategory)
+adminRoutes.put(
+    '/admin/categories/:id',
+    AuthMiddleware,
+    isAdmin,
+    updateCategory
+)
 adminRoutes.delete(
-    '/admin/category/:id',
+    '/admin/categories/:id',
     AuthMiddleware,
     isAdmin,
     deleteCategory
 )
-adminRoutes.get('/admin/count-sellers', AuthMiddleware, isAdmin, countSeller)
+adminRoutes.get('/admin/sellers/count', AuthMiddleware, isAdmin, countSeller)
 adminRoutes.get(
-    '/admin/count-customers',
+    '/admin/customers/count',
     AuthMiddleware,
     isAdmin,
     countCustomer
 )
-adminRoutes.get('/admin/count-products', AuthMiddleware, isAdmin, countProduct)
+adminRoutes.get('/admin/products/count', AuthMiddleware, isAdmin, countProduct)
 adminRoutes.get(
-    '/admin/category/:id',
+    '/admin/categories/:id',
     AuthMiddleware,
     isAdmin,
     getDetailCategory
 )
 adminRoutes.patch(
-    '/admin/activate/products/:id',
+    '/admin/products/:id/activate',
     AuthMiddleware,
     isAdmin,
     activateProduct
 )
 adminRoutes.patch(
-    '/admin/activate/seller/:id',
+    '/admin/sellers/:id/activate',
     AuthMiddleware,
     isAdmin,
     activateSeller

@@ -2,7 +2,8 @@ import prisma from '../utils/prisma.js'
 import { categoryValidation } from '../validation/category-validation.js'
 export const getAllProduct = async (req, res) => {
     const page = Number(req.query.page) || 1
-    const skip = (page - 1) * Number(req.query.size)
+    const take = Number(req.query.take) || 10
+    const skip = (page - 1) * take
     const filters = []
     if (req.query.search) {
         filters.push({
@@ -14,7 +15,7 @@ export const getAllProduct = async (req, res) => {
     try {
         const products = await prisma.product.findMany({
             where: { AND: filters },
-            take: Number(req.query.size),
+            take: take,
             skip: skip,
             orderBy: { updated_at: 'desc' },
             include: {
@@ -32,19 +33,21 @@ export const getAllProduct = async (req, res) => {
             total_product: totalProduct,
             paging: {
                 current_page: page,
-                total_page: Math.ceil(totalProduct / req.query.size),
+                total_page: Math.ceil(totalProduct / take),
             },
             status_code: 200,
         })
     } catch (error) {
         return res
-            .status(501)
-            .json({ message: `${error.message}`, status_code: 501 })
+            .status(500)
+            .json({ message: `${error.message}`, status_code: 500 })
     }
 }
 export const getAllCategory = async (req, res) => {
     const page = Number(req.query.page) || 1
-    const skip = (page - 1) * Number(req.query.size)
+    const take = Number(req.query.take) || 10
+    const skip = (page - 1) * take
+
     const filters = []
     if (req.query.search) {
         filters.push({
@@ -56,7 +59,7 @@ export const getAllCategory = async (req, res) => {
     try {
         const categories = await prisma.category.findMany({
             where: { AND: filters },
-            take: Number(req.query.size),
+            take: take,
             skip: skip,
             orderBy: { name: 'desc' },
         })
@@ -71,19 +74,20 @@ export const getAllCategory = async (req, res) => {
             total_category: totalCategory,
             paging: {
                 current_page: page,
-                total_page: Math.ceil(totalCategory / req.query.size),
+                total_page: Math.ceil(totalCategory / take),
             },
             status_code: 200,
         })
     } catch (error) {
         return res
-            .status(501)
-            .json({ message: `${error.message}`, status_code: 501 })
+            .status(500)
+            .json({ message: `${error.message}`, status_code: 500 })
     }
 }
 export const getAllSeller = async (req, res) => {
     const page = Number(req.query.page) || 1
-    const skip = (page - 1) * Number(req.query.size)
+    const take = Number(req.query.take) || 10
+    const skip = (page - 1) * take
     const filters = []
     if (req.query.search) {
         filters.push({
@@ -95,7 +99,7 @@ export const getAllSeller = async (req, res) => {
     try {
         const sellers = await prisma.seller.findMany({
             where: { AND: filters },
-            take: Number(req.query.size),
+            take: take,
             skip: skip,
             orderBy: { updated_at: 'desc' },
         })
@@ -110,14 +114,14 @@ export const getAllSeller = async (req, res) => {
             total_seller: totalSeller,
             paging: {
                 current_page: page,
-                total_page: Math.ceil(totalSeller / req.query.size),
+                total_page: Math.ceil(totalSeller / take),
             },
             status_code: 200,
         })
     } catch (error) {
         return res
-            .status(501)
-            .json({ message: `${error.message}`, status_code: 501 })
+            .status(500)
+            .json({ message: `${error.message}`, status_code: 500 })
     }
 }
 export const activateProduct = async (req, res) => {
@@ -141,8 +145,8 @@ export const activateProduct = async (req, res) => {
             .json({ message: 'Product Activated', status_code: 200 })
     } catch (error) {
         return res
-            .status(501)
-            .json({ message: `${error.message}`, status_code: 501 })
+            .status(500)
+            .json({ message: `${error.message}`, status_code: 500 })
     }
 }
 export const countProduct = async (req, res) => {
@@ -155,8 +159,8 @@ export const countProduct = async (req, res) => {
         })
     } catch (error) {
         return res
-            .status(501)
-            .json({ message: `${error.message}`, status_code: 501 })
+            .status(500)
+            .json({ message: `${error.message}`, status_code: 500 })
     }
 }
 export const countSeller = async (req, res) => {
@@ -169,8 +173,8 @@ export const countSeller = async (req, res) => {
         })
     } catch (error) {
         return res
-            .status(501)
-            .json({ message: `${error.message}`, status_code: 501 })
+            .status(500)
+            .json({ message: `${error.message}`, status_code: 500 })
     }
 }
 export const countCustomer = async (req, res) => {
@@ -183,8 +187,8 @@ export const countCustomer = async (req, res) => {
         })
     } catch (error) {
         return res
-            .status(501)
-            .json({ message: `${error.message}`, status_code: 501 })
+            .status(500)
+            .json({ message: `${error.message}`, status_code: 500 })
     }
 }
 
@@ -208,8 +212,8 @@ export const createCategory = async (req, res) => {
             .json({ message: 'Category Created', status_code: 201 })
     } catch (error) {
         return res
-            .status(501)
-            .json({ message: `${error.message}`, status_code: 501 })
+            .status(500)
+            .json({ message: `${error.message}`, status_code: 500 })
     }
 }
 export const getDetailCategory = async (req, res) => {
@@ -256,8 +260,8 @@ export const updateCategory = async (req, res) => {
             .json({ message: 'Category Updated', status_code: 200 })
     } catch (error) {
         return res
-            .status(501)
-            .json({ message: `${error.message}`, status_code: 501 })
+            .status(500)
+            .json({ message: `${error.message}`, status_code: 500 })
     }
 }
 
@@ -284,8 +288,8 @@ export const deleteCategory = async (req, res) => {
             .json({ message: 'Category Deleted', status_code: 200 })
     } catch (error) {
         return res
-            .status(501)
-            .json({ message: `${error.message}`, status_code: 501 })
+            .status(500)
+            .json({ message: `${error.message}`, status_code: 500 })
     }
 }
 
@@ -310,7 +314,7 @@ export const activateSeller = async (req, res) => {
             .json({ message: 'Seller Activated', status_code: 200 })
     } catch (error) {
         return res
-            .status(501)
-            .json({ message: `${error.message}`, status_code: 501 })
+            .status(500)
+            .json({ message: `${error.message}`, status_code: 500 })
     }
 }

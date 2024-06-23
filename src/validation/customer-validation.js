@@ -1,6 +1,6 @@
 import Joi from 'joi'
 
-export const customerValidaton = Joi.object({
+export const customerValidation = Joi.object({
     name: Joi.string().optional().max(100).messages({
         'string.max': 'Field Fullname max 100 character',
     }),

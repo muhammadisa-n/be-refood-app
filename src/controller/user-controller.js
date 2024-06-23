@@ -1,7 +1,7 @@
 import prisma from '../utils/prisma.js'
 import { adminValidation } from '../validation/admin-validation.js'
 import { sellerValidaton } from '../validation/seller-validation.js'
-import { customerValidaton } from '../validation/customer-validation.js'
+import { customerValidation } from '../validation/customer-validation.js'
 import path from 'path'
 import fs from 'fs'
 import cloudinary from '../utils/cloudinary.js'
@@ -53,7 +53,7 @@ export const updateUser = async (req, res) => {
             allowUnknown: true,
         })
     } else {
-        validate = customerValidaton.validate(req.body, {
+        validate = customerValidation.validate(req.body, {
             allowUnknown: true,
         })
     }
@@ -167,7 +167,7 @@ export const updateUser = async (req, res) => {
         res.status(200).json({ message: 'User Updated', status_code: 200 })
     } catch (error) {
         return res
-            .status(501)
-            .json({ message: `${error.message}`, status_code: 501 })
+            .status(500)
+            .json({ message: `${error.message}`, status_code: 500 })
     }
 }

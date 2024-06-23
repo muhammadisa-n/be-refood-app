@@ -120,7 +120,7 @@ model Cart {
   @@map("carts")
 }
 
-enum order_status {
+enum status {
   SUCCESS
   PROCESS
   PENDING
@@ -128,19 +128,36 @@ enum order_status {
 }
 
 model Order {
-  id              String       @id @db.VarChar(191)
-  product_id      String
-  customer_id     String
-  total_product   Int
-  total_price     Int
-  payment_status  order_status @default(PENDING)
-  delivery_status order_status @default(PENDING)
-  order_token     String?      @db.VarChar(255)
-  link_file       String?      @db.VarChar(255)
-  created_at      DateTime     @default(now())
-  updated_at      DateTime     @default(now())
-  Product         Product      @relation(fields: [product_id], references: [id])
-  Customer        Customer     @relation(fields: [customer_id], references: [id])
+  id                String       @id @db.VarChar(191)
+  product_id        String
+  customer_id       String
+  total_product     Int
+  total_price       Int
+  payment_status    status       @default(PENDING)
+  delivery_status   status       @default(PENDING)
+  delivery_address  String       @db.Text
+  token_transaction String       @db.VarChar(255)
+  created_at        DateTime     @default(now())
+  updated_at        DateTime     @default(now())
+  Product           Product      @relation(fields: [product_id], references: [id])
+  Customer          Customer     @relation(fields: [customer_id], references: [id])
+  transactions      Transaction?
 
   @@map("orders")
+}
+
+model Transaction {
+  id                 String    @id @db.VarChar(191)
+  order_id           String    @unique @db.VarChar(191)
+  customer_name      String    @db.VarChar(100)
+  customer_email     String    @db.VarChar(100)
+  customer_phone     String    @db.VarChar(15)
+  payment_type       String    @db.VarChar(100)
+  transaction_status status?
+  pdf_url            String    @db.VarChar(100)
+  Order              Order     @relation(fields: [order_id], references: [id])
+  created_at         DateTime?
+  updated_at         DateTime?
+
+  @@map("transactions")
 }

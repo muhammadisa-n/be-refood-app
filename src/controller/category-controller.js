@@ -14,7 +14,7 @@ export const getAllCategory = async (req, res) => {
         })
     } catch (error) {
         return res
-            .status(501)
-            .json({ message: `${error.message}`, status_code: 501 })
+            .status(500)
+            .json({ message: `${error.message}`, status_code: 500 })
     }
 }

@@ -167,8 +167,8 @@ export const register = async (req, res) => {
         })
     } catch (error) {
         return res
-            .status(501)
-            .json({ message: `${error.message}`, status_code: 501 })
+            .status(500)
+            .json({ message: `${error.message}`, status_code: 500 })
     }
 }
 
@@ -296,8 +296,8 @@ export const login = async (req, res) => {
         })
     } catch (error) {
         return res
-            .status(501)
-            .json({ message: `${error.message}`, status_code: 501 })
+            .status(500)
+            .json({ message: `${error.message}`, status_code: 500 })
     }
 }
 export const logout = async (req, res) => {
@@ -377,7 +377,7 @@ export const logout = async (req, res) => {
     } catch (error) {
         return res
             .status(500)
-            .json({ message: `${error.message}`, status_code: 501 })
+            .json({ message: `${error.message}`, status_code: 500 })
     }
 }
 
@@ -454,7 +454,7 @@ export const refreshToken = async (req, res) => {
     } catch (error) {
         return res
             .status(500)
-            .json({ message: `${error.message}`, status_code: 501 })
+            .json({ message: `${error.message}`, status_code: 500 })
     }
 }
 export const verifyEmail = async (req, res) => {
