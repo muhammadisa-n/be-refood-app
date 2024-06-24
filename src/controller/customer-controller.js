@@ -3,7 +3,8 @@ import prisma from '../utils/prisma.js'
 import { v4 as uuidv4 } from 'uuid'
 import snapMidtrans from '../utils/midtrans.js'
 import { orderValidation } from '../validation/order-validation.js'
-// Cart Section
+
+// Cart
 export const getAllCart = async (req, res) => {
     try {
         const carts = await prisma.cart.findMany({
@@ -22,7 +23,6 @@ export const getAllCart = async (req, res) => {
             .json({ message: `${error.message}`, status_code: 500 })
     }
 }
-
 export const createCart = async (req, res) => {
     const validate = cartValidation.validate(req.body, {
         allowUnknown: false,
@@ -98,6 +98,7 @@ export const deleteCart = async (req, res) => {
     }
 }
 
+// Order
 export const createOrder = async (req, res) => {
     const validate = orderValidation.validate(req.body, {
         allowUnknown: false,
@@ -127,37 +128,49 @@ export const createOrder = async (req, res) => {
                 id: req.userData.user_id,
             },
         })
-        console.log(validate)
         const orderId = `ORD-${uuidv4()}`
-        const address = `${customer.address}, ${customer.village}, ${customer.district}, ${customer.city}, ${customer.province}, ${customer.postal_code}`
+        const {
+            name,
+            email,
+            no_hp,
+            address,
+            village,
+            district,
+            city,
+            province,
+            postal_code,
+        } = customer
+        const fullAddress = `${address}, ${village}, ${district}, ${city}, ${province}, ${postal_code}`
+        const { product_id, total_product, total_price } = validate.value
+
         const parameter = {
             transaction_details: {
                 order_id: `${orderId}`,
-                gross_amount: validate.value.total_price,
+                gross_amount: total_price,
             },
             item_details: [
                 {
-                    id: product.id,
+                    id: product_id,
                     price: product.price,
-                    quantity: validate.value.total_product,
+                    quantity: total_product,
                     name: product.name,
                 },
             ],
             customer_details: {
-                first_name: customer.name,
-                email: customer.email,
-                phone: customer.no_hp,
+                first_name: name,
+                email: email,
+                phone: no_hp,
                 billing_address: {
-                    first_name: customer.name,
-                    email: customer.email,
-                    phone: customer.no_hp,
-                    address: address,
+                    first_name: name,
+                    email: email,
+                    phone: no_hp,
+                    address: fullAddress,
                 },
                 shipping_address: {
-                    first_name: customer.name,
-                    email: customer.email,
-                    phone: customer.no_hp,
-                    address: address,
+                    first_name: name,
+                    email: email,
+                    phone: no_hp,
+                    address: fullAddress,
                 },
             },
         }
@@ -168,10 +181,10 @@ export const createOrder = async (req, res) => {
                 await prisma.order.create({
                     data: {
                         id: orderId,
-                        product_id: validate.value.product_id,
+                        product_id: product_id,
                         customer_id: req.userData.user_id,
-                        total_product: validate.value.total_product,
-                        total_price: validate.value.total_price,
+                        total_product: total_product,
+                        total_price: total_price,
                         delivery_address: address,
                         token_transaction: transactionData.token,
                     },

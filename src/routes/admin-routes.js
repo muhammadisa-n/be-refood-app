@@ -17,9 +17,24 @@ import {
 import { isAdmin } from '../middleware/role-middleware.js'
 const adminRoutes = express.Router()
 
-adminRoutes.get('/admin/sellers', AuthMiddleware, isAdmin, getAllSeller)
+// Products
+adminRoutes.get('/admin/products/count', AuthMiddleware, isAdmin, countProduct)
 adminRoutes.get('/admin/products', AuthMiddleware, isAdmin, getAllProduct)
+adminRoutes.patch(
+    '/admin/products/:id/activate',
+    AuthMiddleware,
+    isAdmin,
+    activateProduct
+)
+
+// Categories
 adminRoutes.get('/admin/categories', AuthMiddleware, isAdmin, getAllCategory)
+adminRoutes.get(
+    '/admin/categories/:id',
+    AuthMiddleware,
+    isAdmin,
+    getDetailCategory
+)
 adminRoutes.post('/admin/categories', AuthMiddleware, isAdmin, createCategory)
 adminRoutes.put(
     '/admin/categories/:id',
@@ -33,31 +48,23 @@ adminRoutes.delete(
     isAdmin,
     deleteCategory
 )
-adminRoutes.get('/admin/sellers/count', AuthMiddleware, isAdmin, countSeller)
-adminRoutes.get(
-    '/admin/customers/count',
-    AuthMiddleware,
-    isAdmin,
-    countCustomer
-)
-adminRoutes.get('/admin/products/count', AuthMiddleware, isAdmin, countProduct)
-adminRoutes.get(
-    '/admin/categories/:id',
-    AuthMiddleware,
-    isAdmin,
-    getDetailCategory
-)
-adminRoutes.patch(
-    '/admin/products/:id/activate',
-    AuthMiddleware,
-    isAdmin,
-    activateProduct
-)
+
+// Sellers
 adminRoutes.patch(
     '/admin/sellers/:id/activate',
     AuthMiddleware,
     isAdmin,
     activateSeller
+)
+adminRoutes.get('/admin/sellers', AuthMiddleware, isAdmin, getAllSeller)
+adminRoutes.get('/admin/sellers/count', AuthMiddleware, isAdmin, countSeller)
+
+// Customer
+adminRoutes.get(
+    '/admin/customers/count',
+    AuthMiddleware,
+    isAdmin,
+    countCustomer
 )
 
 export default adminRoutes

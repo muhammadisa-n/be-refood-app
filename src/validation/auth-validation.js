@@ -65,14 +65,14 @@ export const registerValidation = Joi.object({
 })
 export const loginValidation = Joi.object({
     email: Joi.string().required().max(100).email().messages({
-        'any.required': 'Field email is Required',
-        'string.email': 'Field email is not valid email',
-        'string.empty': 'Field email must be filled in',
-        'string.max': 'Field email max 100 character',
+        'any.required': 'Field Email is Required',
+        'string.email': 'Field Email is not valid email',
+        'string.empty': 'Field Email must be filled in',
+        'string.max': 'Field Email max 100 character',
     }),
     password: Joi.string().required().messages({
-        'any.required': 'Field password is Required',
-        'string.empty': 'Field password must be filled in',
+        'any.required': 'Field Password is Required',
+        'string.empty': 'Field Password must be filled in',
     }),
 })
 export const emailValidation = Joi.string()
@@ -80,20 +80,20 @@ export const emailValidation = Joi.string()
     .max(100)
     .email()
     .messages({
-        'any.required': 'Field email is Required',
-        'string.email': 'Field email is not valid email',
-        'string.empty': 'Field email must be filled in',
-        'string.max': 'Field email max 100 character',
+        'any.required': 'Field Email is Required',
+        'string.email': 'Field Email is not valid email',
+        'string.empty': 'Field Email must be filled in',
+        'string.max': 'Field Email max 100 character',
     })
 export const forgotPasswordValidation = Joi.object({
-    newPassword: Joi.string().required().min(8).messages({
-        'any.required': 'Field password is Required',
-        'string.empty': 'Field password must be filled in',
-        'string.min': 'Field password min 8 character',
+    password: Joi.string().required().min(8).messages({
+        'any.required': 'Field Password is Required',
+        'string.empty': 'Field Password must be filled in',
+        'string.min': 'Field Password min 8 character',
     }),
     confPassword: Joi.string().required().min(8).messages({
-        'any.required': 'Field confirm password is Required',
-        'string.empty': 'Field confirm password must be filled in',
-        'string.min': 'Field confirm password min 8 character',
+        'any.required': 'Field Confirm Password is Required',
+        'string.empty': 'Field Confirm Password must be filled in',
+        'string.min': 'Field Confirm Password min 8 character',
     }),
 })

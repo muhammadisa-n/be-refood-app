@@ -1,10 +1,8 @@
 import express from 'express'
-import AuthRoutes from './auth-routes.js'
+import publicRoutes from './public-routes.js'
 import userRoutes from './user-routes.js'
-import productRoutes from './product-routes.js'
 import AdminRoutes from './admin-routes.js'
 import SellerRoutes from './seller-routes.js'
-import CategoryRoutes from './category-routes.js'
 import CustomerRoutes from './customer-routes.js'
 
 const router = express.Router()
@@ -24,13 +22,11 @@ router.get('/api', (req, res) => {
         status_code: 200,
     })
 })
-router.use('/api/', AuthRoutes)
+router.use('/api/', publicRoutes)
 router.use('/api/', AdminRoutes)
 router.use('/api/', SellerRoutes)
 router.use('/api/', CustomerRoutes)
-router.use('/api/', CategoryRoutes)
 router.use('/api/', userRoutes)
-router.use('/api/', productRoutes)
 
 router.use('*', (req, res) => {
     res.status(404).json({

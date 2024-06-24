@@ -8,37 +8,31 @@ import cloudinary from '../utils/cloudinary.js'
 export const getUser = async (req, res) => {
     try {
         let user
-        const role = req.userData.user_role
-        if (role === 'Admin') {
+        const { user_id, user_role } = req.userData
+        if (user_role === 'Admin') {
             user = await prisma.admin.findUnique({
-                where: {
-                    id: req.userData.user_id,
-                },
+                where: { id: user_id },
             })
-        } else if (role === 'Seller') {
+        } else if (user_role === 'Seller') {
             user = await prisma.seller.findUnique({
-                where: {
-                    id: req.userData.user_id,
-                },
+                where: { id: user_id },
             })
-        } else {
+        } else if (user_role === 'Customer') {
             user = await prisma.customer.findUnique({
-                where: {
-                    id: req.userData.user_id,
-                },
+                where: { id: user_id },
             })
         }
         if (!user)
             return res
-                .status(200)
+                .status(404)
                 .json({ message: 'User Not Found', user, status_code: 404 })
         return res
             .status(200)
-            .json({ message: 'Data User Found', user, status_code: 200 })
+            .json({ message: 'User Found', user, status_code: 200 })
     } catch (error) {
         return res
             .status(500)
-            .json({ message: error.message, status_code: 500 })
+            .json({ message: `${error.message}`, status_code: 500 })
     }
 }
 export const updateUser = async (req, res) => {
@@ -78,7 +72,7 @@ export const updateUser = async (req, res) => {
     if (!user)
         return res
             .status(404)
-            .json({ message: 'User not found', status_code: 404 })
+            .json({ message: 'User Not Found', status_code: 404 })
     let imageId
     let imageUrl
     if (req.files === null) {

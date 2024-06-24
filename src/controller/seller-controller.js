@@ -116,14 +116,13 @@ export const createProduct = async (req, res) => {
             tags: `product-image`,
         })
         fs.unlinkSync(imageFile)
-
+        const { name, description, price, category_id } = validate.value
         await prisma.product.create({
             data: {
-                name: validate.value.name,
-                description: validate.value.description,
-                price: validate.value.price,
-                stock: validate.value.stock,
-                category_id: validate.value.category_id,
+                name: name,
+                description: description,
+                price: price,
+                category_id: category_id,
                 image_id: result.public_id,
                 image_url: result.secure_url,
                 seller_id: req.userData.user_id,
@@ -200,13 +199,14 @@ export const updateProduct = async (req, res) => {
         imageUrl = result.secure_url
     }
     try {
+        const { name, description, price, category_id } = validate.value
         await prisma.product.update({
             where: { id: req.params.id },
             data: {
-                name: validate.value.name,
-                description: validate.value.description,
-                price: validate.value.price,
-                category_id: validate.value.category_id,
+                name: name,
+                description: description,
+                price: price,
+                category_id: category_id,
                 image_id: imageId,
                 image_url: imageUrl,
                 updated_at: new Date(),
@@ -307,10 +307,11 @@ export const verifySeller = async (req, res) => {
         })
         fs.unlinkSync(imageFile)
 
+        const { link_map } = validate.value
         await prisma.seller.update({
             where: { id: req.userData.user_id },
             data: {
-                link_map_merchant: validate.value.link_map,
+                link_map_merchant: link_map,
                 sample_image_product_id: result.public_id,
                 sample_image_product_url: result.secure_url,
             },

@@ -23,7 +23,7 @@ app.use(
     })
 )
 connectDatabase()
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDoc, options))
+app.use('/docs-api', swaggerUi.serve, swaggerUi.setup(swaggerDoc, options))
 app.use(morgan('dev'))
 app.use(cookieParser())
 app.use(express.json())
