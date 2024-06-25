@@ -11,5 +11,6 @@ export const cartValidation = Joi.object({
     }),
     product_id: Joi.string().required().messages({
         'any.required': 'Field Product Id is Required',
+        'string.empty': 'Field Product Id is not allowed to be empty',
     }),
 })

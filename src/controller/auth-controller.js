@@ -29,6 +29,7 @@ export const register = async (req, res) => {
         const {
             name,
             email,
+            description,
             password,
             confPassword,
             province,
@@ -125,8 +126,7 @@ export const register = async (req, res) => {
                 },
             })
         }
-
-        res.status(201).json({
+        return res.status(201).json({
             message: 'Register Successfully, Please check your email to verify',
             status_code: 201,
         })
@@ -354,9 +354,9 @@ export const refreshToken = async (req, res) => {
             })
         jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err) => {
             if (err)
-                return res.status(403).json({
-                    message: 'Access Forbidden,Token Is Invalid or Expired',
-                    status_code: 403,
+                return res.status(401).json({
+                    message: 'Unauthorized,Token Is Invalid or Expired',
+                    status_code: 401,
                 })
         })
         const payload = {
@@ -368,7 +368,11 @@ export const refreshToken = async (req, res) => {
         const accessToken = jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, {
             expiresIn: '20m',
         })
-        return res.status(200).json({ accessToken, status_code: 200 })
+        return res.status(200).json({
+            message: 'Success',
+            accessToken,
+            status_code: 200,
+        })
     } catch (error) {
         return res
             .status(500)
@@ -380,55 +384,56 @@ export const verifyEmail = async (req, res) => {
     if (!token) {
         return res
             .status(404)
-            .json({ message: 'Token Not Found', status_code: 404 })
+            .json({ message: 'Params Query Token Not Found', status_code: 404 })
     }
     try {
-        const decoded = jwt.verify(token, process.env.TOKEN_SECRET, (err) => {
+        jwt.verify(token, process.env.TOKEN_SECRET, async (err, data) => {
             if (err) {
-                return res.status(403).json({
-                    message: 'Access Forbidden,Token Is Invalid or Expired',
-                    status_code: 403,
+                return res.status(401).json({
+                    message: 'Unauthorized,Token Is Invalid or Expired',
+                    status_code: 401,
                 })
             }
-        })
-        const { email, role } = decoded
-        let user
-        const [admin, seller, customer] = await prisma.$transaction([
-            prisma.admin.findFirst({ where: { email } }),
-            prisma.seller.findFirst({ where: { email } }),
-            prisma.customer.findFirst({ where: { email } }),
-        ])
-        if (role === 'Admin') {
-            user = admin
-        } else if (role === 'Seller') {
-            user = seller
-        } else {
-            user = customer
-        }
-        if (user.verified_at) {
-            return res
-                .status(200)
-                .json({ message: 'Email Already Verified', status_code: 400 })
-        }
-        if (role === 'Admin') {
-            await prisma.admin.update({
-                where: { email: email },
-                data: { verified_at: new Date() },
+            const { email, role } = data
+            let user
+            const [admin, seller, customer] = await prisma.$transaction([
+                prisma.admin.findFirst({ where: { email } }),
+                prisma.seller.findFirst({ where: { email } }),
+                prisma.customer.findFirst({ where: { email } }),
+            ])
+            if (role === 'Admin') {
+                user = admin
+            } else if (role === 'Seller') {
+                user = seller
+            } else {
+                user = customer
+            }
+            if (user.verified_at) {
+                return res.status(200).json({
+                    message: 'Email Already Verified',
+                    status_code: 200,
+                })
+            }
+            if (role === 'Admin') {
+                await prisma.admin.update({
+                    where: { email: email },
+                    data: { verified_at: new Date() },
+                })
+            } else if (role === 'Seller') {
+                await prisma.seller.update({
+                    where: { email: email },
+                    data: { verified_at: new Date() },
+                })
+            } else {
+                await prisma.customer.update({
+                    where: { email: email },
+                    data: { verified_at: new Date() },
+                })
+            }
+            return res.status(200).json({
+                message: 'Verified Email Successfully',
+                status_code: 200,
             })
-        } else if (role === 'Seller') {
-            await prisma.seller.update({
-                where: { email: email },
-                data: { verified_at: new Date() },
-            })
-        } else {
-            await prisma.customer.update({
-                where: { email: email },
-                data: { verified_at: new Date() },
-            })
-        }
-        res.status(200).json({
-            message: 'Verified Email Successfully',
-            status_code: 200,
         })
     } catch (error) {
         return res
@@ -491,7 +496,7 @@ export const requestForgotPassword = async (req, res) => {
         await transporter.sendMail(mailOptions)
         return res.status(200).json({
             message:
-                'Password reset email sent successfully. Please check your email.',
+                'Password Reset Email Sent Successfully. Please check your email.',
             status_code: 200,
         })
     } catch (error) {
@@ -505,54 +510,55 @@ export const verifyForgotPassword = async (req, res) => {
     if (!token) {
         return res
             .status(404)
-            .json({ message: 'Token Not Found', status_code: 404 })
+            .json({ message: 'Params Query Token Not Found', status_code: 404 })
     }
-    const validate = forgotPasswordValidation.validate(req.body, {
-        allowUnknown: false,
-    })
-    if (validate.error) {
-        let errors = validate.error.message
-        return res.status(400).json({ message: `${errors}`, status_code: 400 })
-    }
-
     try {
-        const decoded = jwt.verify(token, process.env.TOKEN_SECRET, (err) => {
+        jwt.verify(token, process.env.TOKEN_SECRET, async (err, data) => {
             if (err) {
-                return res.status(403).json({
-                    message: 'Access Forbidden,Token Is Invalid or Expired',
-                    status_code: 403,
+                return res.status(401).json({
+                    message: 'Unauthorized, Token Is Invalid or Expired',
+                    status_code: 401,
                 })
             }
-        })
-        const { email, role } = decoded
-        const { password, confPassword } = validate.value
-        if (password !== confPassword) {
-            return res.status(400).json({
-                message: `Confirm Password Doesn't Match`,
-                status_code: 400,
+            const validate = forgotPasswordValidation.validate(req.body, {
+                allowUnknown: false,
             })
-        }
-        const salt = 10
-        const hashPassword = await bcrypt.hash(password, salt)
-        if (role === 'Admin') {
-            await prisma.admin.update({
-                where: { email: email },
-                data: { password: hashPassword },
+            if (validate.error) {
+                let errors = validate.error.message
+                return res
+                    .status(400)
+                    .json({ message: `${errors}`, status_code: 400 })
+            }
+            const { email, role } = data
+            const { password, confPassword } = validate.value
+            if (password !== confPassword) {
+                return res.status(400).json({
+                    message: `Confirm Password Doesn't Match`,
+                    status_code: 400,
+                })
+            }
+            const salt = 10
+            const hashPassword = await bcrypt.hash(password, salt)
+            if (role === 'Admin') {
+                await prisma.admin.update({
+                    where: { email: email },
+                    data: { password: hashPassword },
+                })
+            } else if (role === 'Seller') {
+                await prisma.seller.update({
+                    where: { email: email },
+                    data: { password: hashPassword },
+                })
+            } else {
+                await prisma.customer.update({
+                    where: { email: email },
+                    data: { password: hashPassword },
+                })
+            }
+            return res.status(200).json({
+                message: 'Reset Password Successfully',
+                status_code: 200,
             })
-        } else if (role === 'Seller') {
-            await prisma.seller.update({
-                where: { email: email },
-                data: { password: hashPassword },
-            })
-        } else {
-            await prisma.customer.update({
-                where: { email: email },
-                data: { password: hashPassword },
-            })
-        }
-        res.status(200).json({
-            message: 'Reset Password Successfully',
-            status_code: 200,
         })
     } catch (error) {
         return res
