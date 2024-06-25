@@ -234,10 +234,22 @@ export const deleteProduct = async (req, res) => {
     const product = await prisma.product.findFirst({
         where: { id: req.params.id, seller_id: req.userData.user_id },
     })
+
     if (!product)
         return res
             .status(404)
             .json({ message: 'Product Not Found', status_code: 404 })
+
+    const [ProductUsedCart, ProductUsedOrder] = await prisma.$transaction([
+        prisma.cart.findMany({ where: { product_id: product.id } }),
+        prisma.order.findMany({ where: { product_id: product.id } }),
+    ])
+    if (ProductUsedCart.length > 0 || ProductUsedOrder > 0) {
+        return res.status(409).json({
+            message: "Can't Delete Product. There are linked to this Product",
+            status_code: 409,
+        })
+    }
     try {
         await cloudinary.uploader.destroy(product.image_id)
         await prisma.product.delete({

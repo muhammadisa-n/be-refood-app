@@ -212,10 +212,24 @@ export const deleteCategory = async (req, res) => {
     const category = await prisma.category.findUnique({
         where: { id: category_id },
     })
+
     if (!category)
         return res
             .status(404)
             .json({ message: 'Category not found', status_code: 404 })
+    const CategoryUsed = await prisma.product.findMany({
+        where: {
+            category_id: category_id,
+        },
+    })
+
+    if (CategoryUsed.length > 0) {
+        return res.status(409).json({
+            message:
+                "Can't Delete Category. There are Products linked to this Category",
+            status_code: 409,
+        })
+    }
     try {
         await prisma.category.delete({
             where: { id: Number(req.params.id) },

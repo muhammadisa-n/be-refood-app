@@ -57,6 +57,7 @@ export const updateUser = async (req, res) => {
             village,
             postal_code,
             address,
+            no_hp,
         } = validate.value
         let user
         if (user_role === 'Admin') {
@@ -78,21 +79,32 @@ export const updateUser = async (req, res) => {
                 user,
                 status_code: 404,
             })
-        let no_hp = user.no_hp
-        if (no_hp in validate.value) {
-            const [checkAdmin, checkCustomer] = await prisma.$transaction([
-                prisma.seller.findUnique({ where: { no_hp } }),
-                prisma.customer.findUnique({ where: { no_hp } }),
-            ])
-            if (checkAdmin || checkCustomer) {
+
+        if (no_hp && no_hp !== user.no_hp) {
+            const [checkSellerNoHP, checkCustomerNoHP] =
+                await prisma.$transaction([
+                    prisma.seller.findFirst({
+                        where: {
+                            no_hp: no_hp,
+                            id: { not: user_id },
+                        },
+                    }),
+                    prisma.customer.findFirst({
+                        where: {
+                            no_hp: no_hp,
+                            id: { not: user_id },
+                        },
+                    }),
+                ])
+
+            if (checkSellerNoHP || checkCustomerNoHP) {
                 return res.status(409).json({
-                    message: 'NUmber Phone Has Been Registered ',
-                    user,
+                    message: 'Number Phone Has Been Registered',
                     status_code: 409,
                 })
             }
-            no_hp = validate.value.no_hp
         }
+
         let imageId = user.ava_image_id
         let imageUrl = user.ava_image_url
         if (req.files && req.files.image) {
@@ -142,15 +154,15 @@ export const updateUser = async (req, res) => {
             await prisma.seller.update({
                 where: { id: req.userData.user_id },
                 data: {
-                    name: name,
-                    description: description,
-                    province: province,
-                    city: city,
-                    district: district,
-                    village: village,
-                    postal_code: postal_code,
-                    address: address,
-                    no_hp: no_hp,
+                    name: name || user.name,
+                    description: description || user.description,
+                    province: province || user.province,
+                    city: city || user.city,
+                    district: district || user.district,
+                    village: village || user.district,
+                    postal_code: postal_code || user.postal_code,
+                    address: address || user.address,
+                    no_hp: no_hp || user.no_hp,
                     ava_image_id: imageId,
                     ava_image_url: imageUrl,
                     updated_at: new Date(),
@@ -160,14 +172,14 @@ export const updateUser = async (req, res) => {
             await prisma.customer.update({
                 where: { id: req.userData.user_id },
                 data: {
-                    name: name,
-                    province: province,
-                    city: city,
-                    district: district,
-                    village: village,
-                    postal_code: postal_code,
-                    address: address,
-                    no_hp: no_hp,
+                    name: name || user.name,
+                    province: province || user.province,
+                    city: city || user.city,
+                    district: district || user.district,
+                    village: village || user.district,
+                    postal_code: postal_code || user.postal_code,
+                    address: address || user.address,
+                    no_hp: no_hp || user.no_hp,
                     ava_image_id: imageId,
                     ava_image_url: imageUrl,
                     updated_at: new Date(),
