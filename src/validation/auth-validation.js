@@ -1,105 +1,116 @@
-import Joi from 'joi'
-export const registerValidation = Joi.object({
-    name: Joi.string().required().max(100).messages({
-        'any.required': 'Field Name is Required',
-        'string.empty': 'Field Name is not allowed to be empty',
-        'string.max': 'Field Name max 100 character',
+const Joi = require('joi');
+module.exports = {
+    registerValidation: Joi.object({
+        nama: Joi.string().required().max(100).messages({
+            'any.required': 'Field Nama Harus Diisi',
+            'string.empty': 'Field Nama Tidak Boleh Kosong',
+            'string.max': 'Field Nama Maksimal 100 Karakter',
+        }),
+        email: Joi.string().required().max(100).email().messages({
+            'any.required': 'Field Email Harus Diisi',
+            'string.empty': 'Field Email Tidak Boleh Kosong',
+            'string.email': 'Field Email Tidak Valid',
+            'string.max': 'Field Email Maksimal 100 Karakter',
+        }),
+        password: Joi.string().required().min(8).max(100).messages({
+            'any.required': 'Field Password Harus Diisi',
+            'string.empty': 'Field Password Tidak Boleh Kosong',
+            'string.min': 'Field Password minimal 8 Karakter',
+            'string.max': 'Field Password Maksimal 100 Karakter',
+        }),
+        confPassword: Joi.string()
+            .required()
+            .valid(Joi.ref('password'))
+            .min(8)
+            .max(100)
+            .messages({
+                'any.required': 'Field Confirm Password Harus Diisi',
+                'string.empty': 'Field Confirm Password Tidak Boleh Kosong',
+                'string.min': 'Field Confirm Password minimal 8 Karakter',
+                'string.max': 'Field Confirm Password max 100 character',
+                'any.only': 'Field Confirm Password Harus Sama Dengan Password',
+            }),
+        provinsi: Joi.string().required().max(100).messages({
+            'any.required': 'Field Provinsi Harus Diisi',
+            'string.empty': 'Field Provinsi Tidak Boleh Kosong',
+            'string.max': 'Field Provinsi Maksimal 100 Karakter',
+        }),
+        kota: Joi.string().required().max(100).messages({
+            'any.required': 'Field Kota Harus Diisi',
+            'string.empty': 'Field Kota Tidak Boleh Kosong',
+            'string.max': 'Field Kota Maksimal 100 Karakter',
+        }),
+        kecamatan: Joi.string().required().max(100).messages({
+            'any.required': 'Field Kecamatan Harus Diisi',
+            'string.empty': 'Field Kecamatan Tidak Boleh Kosong',
+            'string.max': 'Field Kecamatan Maksimal 100 Karakter',
+        }),
+        kelurahan: Joi.string().required().max(100).messages({
+            'any.required': 'Field Kelurahan Harus Diisi',
+            'string.empty': 'Field Kelurahan Tidak Boleh Kosong',
+            'string.max': 'Field Kelurahan Maksimal 100 Karakter',
+        }),
+        kode_pos: Joi.string().required().max(100).messages({
+            'any.required': 'Field Kode Pos Harus Diisi',
+            'string.empty': 'Field Kode Pos Tidak Boleh Kosong',
+            'string.max': 'Field Kode Pos Maksimal 100 Karakter',
+        }),
+        alamat: Joi.string().required().max(255).messages({
+            'any.required': 'Field Alamat Harus Diisi',
+            'string.empty': 'Field Alamat Tidak Boleh Kosong',
+            'string.max': 'Field Alamat Maksimal 255 Karakter',
+        }),
+        no_hp: Joi.string().required().min(12).max(15).messages({
+            'any.required': 'Field No HP Harus Diisi',
+            'string.empty': 'Field No HP Tidak Boleh Kosong',
+            'string.min': 'Field No HP Minimal 12 Karakter',
+            'string.max': 'Field No HP Maksimal 15 Karakter',
+        }),
+        role: Joi.string().required().valid('Seller', 'Customer').messages({
+            'any.required': 'Field Role Harus Diisi',
+            'string.empty': 'Field Role Tidak Boleh Kosong',
+            'string.max': 'Field Role Maksimal 100 Karakter',
+            'any.only': 'Field Role Harus Seller Atau Customer',
+        }),
     }),
-    email: Joi.string().required().max(100).email().messages({
-        'any.required': 'Field Email is Required',
-        'string.email': 'Field Email is not valid email',
-        'string.empty': 'Field Email is not allowed to be empty',
-        'string.max': 'Field Email max 100 character',
+    loginValidation: Joi.object({
+        email: Joi.string().required().max(100).email().messages({
+            'any.required': 'Field Email Harus Diisi',
+            'string.empty': 'Field Email Tidak Boleh Kosong',
+            'string.email': 'Field Email Tidak Valid',
+            'string.max': 'Field Email Maksimal 100 Karakter',
+        }),
+        password: Joi.string().required().min(8).max(100).messages({
+            'any.required': 'Field Password Harus Diisi',
+            'string.empty': 'Field Password Tidak Boleh Kosong',
+            'string.min': 'Field Password minimal 8 Karakter',
+            'string.max': 'Field Password Maksimal 100 Karakter',
+        }),
     }),
-    password: Joi.string().required().min(8).max(100).messages({
-        'any.required': 'Field Password is Required',
-        'string.empty': 'Field Password is not allowed to be empty',
-        'string.min': 'Field Password min 8 character',
-        'string.max': 'Field Password max 100 character',
+    emailValidation: Joi.string().required().max(100).email().messages({
+        'any.required': 'Field Email Harus Diisi',
+        'string.empty': 'Field Email Tidak Boleh Kosong',
+        'string.email': 'Field Email Tidak Valid',
+        'string.max': 'Field Email Maksimal 100 Karakter',
     }),
-    confPassword: Joi.string().required().min(8).max(100).messages({
-        'any.required': 'Field Confirm Password is Required',
-        'string.empty': 'Field Confirm Password is not allowed to be empty',
-        'string.min': 'Field Confirm Password min 8 character',
-        'string.max': 'Field Confirm Password max 100 character',
+    forgotPasswordValidation: Joi.object({
+        password: Joi.string().required().min(8).max(100).messages({
+            'any.required': 'Field Password Harus Diisi',
+            'string.empty': 'Field Password Tidak Boleh Kosong',
+            'string.min': 'Field Password Minimal 8 Karakter',
+            'string.max': 'Field Password Maksimal 100 Karakter',
+        }),
+        confPassword: Joi.string()
+            .required()
+            .valid(Joi.ref('password'))
+            .min(8)
+            .max(100)
+            .messages({
+                'any.required': 'Field Confirm Password Harus Diisi',
+                'string.empty': 'Field Confirm Password Tidak Boleh Kosong',
+                'string.min': 'Field Confirm Password Minimal 8 Karakter',
+                'string.max': 'Field Confirm Password Maksimal 100 character',
+                'any.only': 'Field Confirm Password Harus Sama Dengan Password',
+            }),
     }),
-    province: Joi.string().required().max(100).messages({
-        'any.required': 'Field Province is Required',
-        'string.empty': 'Field Province is not allowed to be empty',
-        'string.max': 'Field Province max 100 character',
-    }),
-    city: Joi.string().required().max(100).messages({
-        'any.required': 'Field City is Required',
-        'string.empty': 'Field City is not allowed to be empty',
-        'string.max': 'Field City max 100 character',
-    }),
-    district: Joi.string().required().max(100).messages({
-        'any.required': 'Field District is Required',
-        'string.empty': 'Field District is not allowed to be empty',
-        'string.max': 'Field District 100 max character',
-    }),
-    village: Joi.string().required().max(100).messages({
-        'any.required': 'Field Village is Required',
-        'string.empty': 'Field Village is not allowed to be empty',
-        'string.max': 'Field Village max 100 character',
-    }),
-    postal_code: Joi.string().required().max(100).messages({
-        'any.required': 'Field Postal Code is Required',
-        'string.empty': 'Field Postal Code is not allowed to be empty',
-        'string.max': 'Field Postal Code max 100 character',
-    }),
-    address: Joi.string().required().max(255).messages({
-        'any.required': 'Field Address is Required',
-        'string.empty': 'Field Address is not allowed to be empty',
-        'string.max': 'Field Address max 255 character',
-    }),
-    no_hp: Joi.string().required().min(12).max(15).messages({
-        'any.required': 'Field Number Phone is Required',
-        'string.empty': 'Field Number Phone is not allowed to be empty',
-        'string.min': 'Field Number Phone min 12 character',
-        'string.max': 'Field Number Phone max 15 character',
-    }),
-    role: Joi.string().required().valid('Seller', 'Customer').messages({
-        'any.required': 'Field Role is Required',
-        'string.empty': 'Field Role must is not allowed to be empty',
-        'any.only': 'Field role must be Seller or Customer',
-    }),
-})
-export const loginValidation = Joi.object({
-    email: Joi.string().required().max(100).email().messages({
-        'any.required': 'Field Email is Required',
-        'string.email': 'Field Email is not valid email',
-        'string.empty': 'Field Email is not allowed to be empty',
-        'string.max': 'Field Email max 100 character',
-    }),
-    password: Joi.string().required().min(8).max(100).messages({
-        'any.required': 'Field Password is Required',
-        'string.empty': 'Field Password is not allowed to be empty',
-        'string.min': 'Field Password min 8 character',
-        'string.max': 'Field Email max 100 character',
-    }),
-})
-export const emailValidation = Joi.string()
-    .required()
-    .max(100)
-    .email()
-    .messages({
-        'any.required': 'Field Email is Required',
-        'string.email': 'Field Email is not valid email',
-        'string.empty': 'Field Email is not allowed to be empty',
-        'string.max': 'Field Email max 100 character',
-    })
-export const forgotPasswordValidation = Joi.object({
-    password: Joi.string().required().min(8).max(100).messages({
-        'any.required': 'Field Password is Required',
-        'string.empty': 'Field Password is not allowed to be empty',
-        'string.min': 'Field Password min 8 character',
-        'string.max': 'Field Password max 100 character',
-    }),
-    confPassword: Joi.string().required().min(8).max(100).messages({
-        'any.required': 'Field Confirm Password is Required',
-        'string.empty': 'Field Confirm Password is not allowed to be empty',
-        'string.min': 'Field Confirm Password min 8 character',
-        'string.max': 'Field Confirm Password max 100 character',
-    }),
-})
+};

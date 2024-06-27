@@ -1,11 +1,12 @@
 -- CreateTable
 CREATE TABLE `carts` (
     `id` VARCHAR(191) NOT NULL,
-    `quantity` INTEGER NOT NULL,
-    `total_price` INTEGER NOT NULL,
+    `total_produk` INTEGER NOT NULL,
+    `total_harga` INTEGER NOT NULL,
     `customer_id` VARCHAR(191) NOT NULL,
     `product_id` VARCHAR(191) NOT NULL,
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updated_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
     UNIQUE INDEX `carts_product_id_key`(`product_id`),
     PRIMARY KEY (`id`)

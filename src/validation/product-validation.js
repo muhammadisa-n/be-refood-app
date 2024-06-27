@@ -1,22 +1,25 @@
-import Joi from 'joi'
+const Joi = require('joi');
 
-export const productValidation = Joi.object({
-    name: Joi.string().required().max(100).messages({
-        'any.required': 'Field Name is Required',
-        'string.empty': 'Field Name is not allowed to be empty',
-        'string.max': 'Field Name max 100 character',
+module.exports = {
+    productValidation: Joi.object({
+        nama: Joi.string().required().max(100).messages({
+            'any.required': 'Field Nama Harus Diisi',
+            'string.empty': 'Field Nama Tidak Boleh Kosong',
+            'string.max': 'Field Nama maksimal 100 Karakter',
+        }),
+        deskripsi: Joi.string().required().messages({
+            'any.required': 'Field Deskripsi Harus Diisi',
+            'string.empty': 'Field Deskripsi Tidak Boleh Kosong',
+        }),
+        harga: Joi.number().positive().required().messages({
+            'any.required': 'Field Harga Harus Diisi',
+            'any.empty': 'Field Harga Tidak Boleh Kosong',
+            'number.base': 'Field Harga Tidak Valid.',
+            'number.positive': 'Field Harga Tidak Valid.',
+        }),
+        category_id: Joi.number().positive().required().messages({
+            'any.required': 'Field Category Id Harus Diisi',
+            'any.empty': 'Field Category Id Tidak Boleh Kosong',
+        }),
     }),
-    description: Joi.string().required().messages({
-        'any.required': 'Field Description is Required',
-        'string.empty': 'Field Description is not allowed to be empty',
-    }),
-    price: Joi.number().positive().required().messages({
-        'number.base': 'Field Price must be a valid number.',
-        'number.positive': 'Field Price must be a positive value ',
-        'any.required': 'Field Price is Required',
-    }),
-    category_id: Joi.number().positive().required().messages({
-        'any.required': 'Field Category Id is Required',
-        'any.empty': 'Field Category Id is not allowed to be empty',
-    }),
-})
+};

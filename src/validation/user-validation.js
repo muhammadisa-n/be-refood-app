@@ -1,31 +1,34 @@
-import Joi from 'joi'
+const Joi = require('joi');
 
-export const updateUserValidation = Joi.object({
-    name: Joi.string().required().max(100).messages({
-        'any.required': 'Field Name is Required',
-        'string.max': 'Field Name max 100 character',
-        'string.empty': 'Field Name is not allowed to be empty',
+module.exports = {
+    updateUserValidation: Joi.object({
+        nama: Joi.string().required().max(100).messages({
+            'any.required': 'Field Nama Harus Diisi',
+            'string.max': 'Field Nama Maksimal 100 Karakter',
+            'string.empty': 'Field Nama Tidak Boleh Kosong',
+        }),
+        deskripsi: Joi.string().optional().allow(''),
+        provinsi: Joi.string().optional().max(100).allow('').messages({
+            'string.max': 'Field Provinsi Maksimal 100 Karakter',
+        }),
+        kota: Joi.string().optional().max(100).allow('').messages({
+            'string.max': 'Field Kota Maksimal 100 Karakter',
+        }),
+        kecamatan: Joi.string().optional().max(100).allow('').messages({
+            'string.max': 'Field Kecamatan Maksimal 100 Karakter',
+        }),
+        kelurahan: Joi.string().optional().max(100).allow('').messages({
+            'string.max': 'Field Kelurahan Maksimal 100 Karakter',
+        }),
+        kode_pos: Joi.string().optional().max(100).allow('').messages({
+            'string.max': 'Field Kode Pos Maksimal 100 Karakter',
+        }),
+        alamat: Joi.string().optional().allow('').max(255).messages({
+            'string.max': 'Field Alamat Maksimal 255 Karakter',
+        }),
+        no_hp: Joi.string().optional().min(12).max(15).allow('').messages({
+            'string.max': 'Field No HP Maksimal 15 Karakter',
+            'string.min': 'Field Nama Minimal 12 Karakter',
+        }),
     }),
-    description: Joi.string().optional().allow(''),
-    province: Joi.string().optional().max(100).allow('').messages({
-        'string.max': 'Field Province max 100 character',
-    }),
-    city: Joi.string().optional().max(100).allow('').messages({
-        'string.max': 'Field City max 100 character',
-    }),
-    district: Joi.string().optional().max(100).allow('').messages({
-        'string.max': 'Field District 100 max character',
-    }),
-    village: Joi.string().optional().max(100).allow('').messages({
-        'string.max': 'Field Village max 100 character',
-    }),
-    postal_code: Joi.string().optional().max(100).allow('').messages({
-        'string.max': 'Field Postal Code max 100 character',
-    }),
-    address: Joi.string().optional().allow('').messages({
-        'string.max': 'Field Address max 255 character',
-    }),
-    no_hp: Joi.string().optional().max(15).allow('').messages({
-        'string.max': 'Field Number Phone max 15 character',
-    }),
-})
+};

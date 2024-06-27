@@ -1,9 +1,11 @@
-import Joi from 'joi'
+const Joi = require('joi');
 
-export const VerificationSellerValidation = Joi.object({
-    link_map: Joi.string().required().max(255).messages({
-        'any.required': 'Field Link Map is Required',
-        'string.empty': 'Field Link Map is not allowed to be empty',
-        'string.max': 'Field Link Map max 255 character',
+module.exports = {
+    VerificationSellerValidation: Joi.object({
+        link_map: Joi.string().required().max(100).messages({
+            'any.required': 'Field Link Map Harus Diisi',
+            'string.empty': 'Field Link Map Tidak Boleh Kosong',
+            'string.max': 'Field Link Map Maksimal 100 Karakter',
+        }),
     }),
-})
+};

@@ -1,5 +1,5 @@
-import express from 'express'
-import {
+const express = require('express');
+const {
     register,
     login,
     logout,
@@ -7,28 +7,28 @@ import {
     verifyEmail,
     verifyForgotPassword,
     requestForgotPassword,
-} from '../controller/auth-controller.js'
-import { getAllCategory } from '../controller/category-controller.js'
-import {
+} = require('../controller/auth-controller.js');
+const { getAllCategory } = require('../controller/category-controller.js');
+const {
     getAllProduct,
     getDetailProduct,
-} from '../controller/product-controller.js'
-const publicRoutes = express.Router()
+} = require('../controller/product-controller.js');
 
+const publicRoutes = express.Router();
 // Auth
-publicRoutes.post('/auth/register', register)
-publicRoutes.post('/auth/login', login)
-publicRoutes.delete('/auth/logout', logout)
-publicRoutes.get('/auth/verify-email', verifyEmail)
-publicRoutes.post('/auth/forgot-password', requestForgotPassword)
-publicRoutes.post('/auth/verify-forgot-password', verifyForgotPassword)
-publicRoutes.get('/auth/token', refreshToken)
+publicRoutes.post('/auth/register', register);
+publicRoutes.post('/auth/login', login);
+publicRoutes.delete('/auth/logout', logout);
+publicRoutes.get('/auth/verify-email', verifyEmail);
+publicRoutes.post('/auth/forgot-password', requestForgotPassword);
+publicRoutes.post('/auth/verify-forgot-password', verifyForgotPassword);
+publicRoutes.get('/auth/token', refreshToken);
 
 // Product
-publicRoutes.get('/products', getAllProduct)
-publicRoutes.get('/products/:id', getDetailProduct)
+publicRoutes.get('/products', getAllProduct);
+publicRoutes.get('/products/:id', getDetailProduct);
 
 // Category
-publicRoutes.get('/categories', getAllCategory)
+publicRoutes.get('/categories', getAllCategory);
 
-export default publicRoutes
+module.exports = publicRoutes;

@@ -1,7 +1,8 @@
-import express from 'express'
-import { AuthMiddleware } from '../middleware/auth-middleware.js'
-import { getUser, updateUser } from '../controller/user-controller.js'
-const userRoutes = express.Router()
-userRoutes.get('/users/get', AuthMiddleware, getUser)
-userRoutes.put('/users/update', AuthMiddleware, updateUser)
-export default userRoutes
+const express = require('express');
+const { AuthMiddleware } = require('../middleware/auth-middleware.js');
+const { getUser, updateUser } = require('../controller/user-controller.js');
+
+const userRoutes = express.Router();
+userRoutes.get('/users/get', AuthMiddleware, getUser);
+userRoutes.put('/users/update', AuthMiddleware, updateUser);
+module.exports = userRoutes;

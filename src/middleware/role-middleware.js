@@ -1,37 +1,39 @@
-import prisma from '../utils/prisma.js'
-export const isAdmin = async (req, res, next) => {
+const { prisma } = require('../utils/prisma.js');
+const isAdmin = async (req, res, next) => {
     const admin = await prisma.admin.findFirst({
         where: { id: req.userData.user_id },
-    })
+    });
     if (!admin) {
         return res.status(403).json({
-            message: 'Access Forbidden ,You must be Admin',
+            message: 'Akses Terlarang, Role Kamu Harus Admin',
             status_code: 403,
-        })
+        });
     }
-    next()
-}
-export const isSeller = async (req, res, next) => {
+    next();
+};
+const isSeller = async (req, res, next) => {
     const seller = await prisma.seller.findFirst({
         where: { id: req.userData.user_id },
-    })
+    });
     if (!seller) {
         return res.status(403).json({
-            message: 'Access Forbidden ,You must be Seller',
+            message: 'Akses Terlarang, Role Kamu Harus Seller',
             status_code: 403,
-        })
+        });
     }
-    next()
-}
-export const isCustomer = async (req, res, next) => {
+    next();
+};
+const isCustomer = async (req, res, next) => {
     const customer = await prisma.customer.findFirst({
         where: { id: req.userData.user_id },
-    })
+    });
     if (!customer) {
         return res.status(403).json({
-            message: 'Access Forbidden ,You must be Customer',
+            message: 'Akses Terlarang, Role Kamu Harus Customer',
             status_code: 403,
-        })
+        });
     }
-    next()
-}
+    next();
+};
+
+module.exports = { isAdmin, isSeller, isCustomer };

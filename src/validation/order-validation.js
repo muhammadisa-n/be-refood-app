@@ -1,17 +1,21 @@
-import Joi from 'joi'
-
-export const orderValidation = Joi.object({
-    product_id: Joi.string().required().messages({
-        'any.required': 'Field Product Id is Required',
+const Joi = require('joi');
+module.exports = {
+    orderValidation: Joi.object({
+        product_id: Joi.string().required().messages({
+            'any.required': 'Field Product Id Harus Diisi',
+            'string.empty': 'Field Product Id Tidak Boleh Kosong',
+        }),
+        total_produk: Joi.number().required().positive().messages({
+            'any.required': 'Field Total Produk Harus Diisi',
+            'any.empty': 'Field Total Produk Tidak Boleh Kosong',
+            'number.base': 'Field Total Produk Tidak Valid.',
+            'number.positive': 'Field Total Produk Tidak Valid',
+        }),
+        total_harga: Joi.number().required().positive().messages({
+            'any.required': 'Field Total Harga Harus Diisi',
+            'any.empty': 'Field Total Harga Tidak Boleh Kosong',
+            'number.base': 'Field Total Harga Tidak Valid.',
+            'number.positive': 'Field Total Harga Tidak Valid.',
+        }),
     }),
-    total_product: Joi.number().required().positive().messages({
-        'number.base': 'Field Total Product must be a valid number.',
-        'number.positive': 'Field Total Product must be a positive value ',
-        'any.required': 'Field Total Product is Required',
-    }),
-    total_price: Joi.number().required().positive().messages({
-        'number.base': 'Field Total Price must be a valid number.',
-        'number.positive': 'Field Total Price must be a positive value ',
-        'any.required': 'Field Total Price is Required',
-    }),
-})
+};
