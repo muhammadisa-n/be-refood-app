@@ -37,7 +37,7 @@ sellerRoutes.delete(
     deleteProduct
 );
 sellerRoutes.get(
-    '/seller/products/count',
+    '/seller/product/count',
     AuthMiddleware,
     isSeller,
     countProduct

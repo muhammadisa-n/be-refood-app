@@ -308,12 +308,28 @@ module.exports = {
                 .json({ message: `${error.message}`, status_code: 500 });
         }
     },
+    getDetailSeller: async (req, res) => {
+        const seller = await prisma.seller.findUnique({
+            where: { id: req.params.id },
+        });
+
+        if (!seller) {
+            return res
+                .status(404)
+                .json({ message: 'Data Seller Tidak Ada', status_code: 404 });
+        }
+        return res.status(200).json({
+            message: 'Data Seller Ditemukan',
+            seller,
+            status_code: 200,
+        });
+    },
     countSeller: async (req, res) => {
         try {
             const totalSeller = await prisma.seller.count();
             return res.status(200).json({
                 message: 'Sukses',
-                total_seller: totalSeller,
+                total_seller: totalSeller || 0,
                 status_code: 200,
             });
         } catch (error) {

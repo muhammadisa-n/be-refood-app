@@ -87,7 +87,7 @@ module.exports = {
         try {
             const cart = await prisma.cart.findFirst({
                 where: {
-                    id: req.params.id,
+                    product_id: req.params.id,
                     customer_id: req.userData.user_id,
                 },
             });

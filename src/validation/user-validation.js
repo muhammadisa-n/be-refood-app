@@ -26,9 +26,6 @@ module.exports = {
         alamat: Joi.string().optional().allow('').max(255).messages({
             'string.max': 'Field Alamat Maksimal 255 Karakter',
         }),
-        no_hp: Joi.string().optional().min(12).max(15).allow('').messages({
-            'string.max': 'Field No HP Maksimal 15 Karakter',
-            'string.min': 'Field Nama Minimal 12 Karakter',
-        }),
+        no_hp: Joi.string().optional().allow('').messages({}),
     }),
 };

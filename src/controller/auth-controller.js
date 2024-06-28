@@ -12,7 +12,6 @@ const transporter = require('../utils/nodemailer.js');
 const mustache = require('mustache');
 const fs = require('fs');
 const path = require('path');
-const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173/';
 module.exports = {
     register: async (req, res) => {
         const validate = registerValidation.validate(req.body, {
@@ -67,7 +66,7 @@ module.exports = {
                 { expiresIn: '10m' }
             );
 
-            const url = `${CLIENT_URL}verification-email?token=${verifyEmailToken}`;
+            const url = `${process.env.CLIENT_URL}/verification-email?token=${verifyEmailToken}`;
 
             const template = fs.readFileSync(
                 path.join(__dirname, '../templates/verify-email.mustache'),
@@ -169,7 +168,7 @@ module.exports = {
                     process.env.TOKEN_SECRET,
                     { expiresIn: '10m' }
                 );
-                const url = `${CLIENT_URL}verification-email?token=${verifyEmailToken}`;
+                const url = `${process.env.CLIENT_URL}/verification-email?token=${verifyEmailToken}`;
                 const template = fs.readFileSync(
                     path.join(__dirname, '../templates/verify-email.mustache'),
                     'utf-8'
@@ -481,7 +480,7 @@ module.exports = {
                 process.env.TOKEN_SECRET,
                 { expiresIn: '10m' }
             );
-            const url = `${CLIENT_URL}reset-password?token=${resetPasswordToken}`;
+            const url = `${process.env.CLIENT_URL}/reset-password?token=${resetPasswordToken}`;
 
             const template = fs.readFileSync(
                 path.join(__dirname, '../templates/forgot-password.mustache'),

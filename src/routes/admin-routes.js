@@ -15,6 +15,7 @@ const {
     getAllSeller,
     getAllCategory,
     getAllCustomer,
+    getDetailSeller,
 } = require('../controller/admin-controller.js');
 const { isAdmin } = require('../middleware/role-middleware.js');
 
@@ -27,7 +28,7 @@ adminRoutes.get(
     isAdmin,
     getDetailProduct
 );
-adminRoutes.get('/admin/products/count', AuthMiddleware, isAdmin, countProduct);
+adminRoutes.get('/admin/product/count', AuthMiddleware, isAdmin, countProduct);
 adminRoutes.patch(
     '/admin/products/:id/activate',
     AuthMiddleware,
@@ -65,12 +66,13 @@ adminRoutes.patch(
     activateSeller
 );
 adminRoutes.get('/admin/sellers', AuthMiddleware, isAdmin, getAllSeller);
-adminRoutes.get('/admin/sellers/count', AuthMiddleware, isAdmin, countSeller);
+adminRoutes.get('/admin/sellers/:id', AuthMiddleware, isAdmin, getDetailSeller);
+adminRoutes.get('/admin/seller/count', AuthMiddleware, isAdmin, countSeller);
 
 // Customer
 adminRoutes.get('/admin/customers', AuthMiddleware, isAdmin, getAllCustomer);
 adminRoutes.get(
-    '/admin/customers/count',
+    '/admin/customer/count',
     AuthMiddleware,
     isAdmin,
     countCustomer
