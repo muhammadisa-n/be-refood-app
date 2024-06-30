@@ -8,7 +8,7 @@
         "dev": "nodemon src/index.js",
         "initdb": "npx prisma init",
         "migrate-dev": "npx prisma migrate dev",
-        "migrate-deploy": "npx prisma migrate deploy",
+        "migrate-deploy": "npx prisma db push",
         "create-migrate": "npx prisma migrate dev --create-only",
         "generate": "npx prisma generate",
         "test": ""
