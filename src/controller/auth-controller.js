@@ -1,6 +1,6 @@
 require('dotenv/config');
 const { prisma } = require('../utils/prisma.js');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const {
     forgotPasswordValidation,
@@ -63,7 +63,7 @@ module.exports = {
             const verifyEmailToken = jwt.sign(
                 { email: email, role: role },
                 process.env.TOKEN_SECRET,
-                { expiresIn: '10m' }
+                { expiresIn: '1h' }
             );
 
             const url = `${process.env.CLIENT_URL}/verification-email?token=${verifyEmailToken}`;
@@ -82,7 +82,7 @@ module.exports = {
                 html: verifyEmailTemplate,
             };
 
-            await transporter.sendMail(mailOptions);
+            transporter.sendMail(mailOptions);
             const dataRegister = {
                 nama: nama,
                 email: email,
@@ -163,28 +163,8 @@ module.exports = {
             }
 
             if (!user.verified_at) {
-                const verifyEmailToken = jwt.sign(
-                    { email: email, role: role },
-                    process.env.TOKEN_SECRET,
-                    { expiresIn: '10m' }
-                );
-                const url = `${process.env.CLIENT_URL}/verification-email?token=${verifyEmailToken}`;
-                const template = fs.readFileSync(
-                    path.join(__dirname, '../templates/verify-email.mustache'),
-                    'utf-8'
-                );
-                const data = { url, name: user.nama };
-                const verifyEmailTemplate = mustache.render(template, data);
-                const mailOptions = {
-                    from: process.env.MAIL_FROM,
-                    to: validate.value.email,
-                    subject: 'Email Verification',
-                    html: verifyEmailTemplate,
-                };
-                await transporter.sendMail(mailOptions);
                 return res.status(401).json({
-                    message:
-                        'Email Belum Diverifikasi, Verifikasi Email Terkirim, Cek Email Untuk Verifikasi.',
+                    message: 'Email Belum Diverifikasi',
                     status_code: 401,
                 });
             }
@@ -304,7 +284,7 @@ module.exports = {
                 .json({ message: `${error.message}`, status_code: 500 });
         }
     },
-    refreshToken: async (req, res) => {
+    getAccessToken: async (req, res) => {
         try {
             const refreshToken = req.cookies.refresh_token;
             if (!refreshToken)
@@ -478,7 +458,7 @@ module.exports = {
             const resetPasswordToken = jwt.sign(
                 { email: email, role: role },
                 process.env.TOKEN_SECRET,
-                { expiresIn: '10m' }
+                { expiresIn: '1h' }
             );
             const url = `${process.env.CLIENT_URL}/reset-password?token=${resetPasswordToken}`;
 
@@ -494,7 +474,7 @@ module.exports = {
                 subject: 'Reset Your Password',
                 html: forgotPasswordTemplate,
             };
-            await transporter.sendMail(mailOptions);
+            transporter.sendMail(mailOptions);
             return res.status(200).json({
                 message:
                     'Email Reset Password Berhasil Dikirim. Cek Email Untuk Reset Password.',

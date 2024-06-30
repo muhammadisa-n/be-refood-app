@@ -3,9 +3,11 @@ const {
     deleteCart,
     createCart,
     getAllCart,
-    createOrder,
+    createOrderTransaction,
     getAllOrder,
     getDetailOrder,
+    UpdateOrderTransaction,
+    UpdateOrderStatusPengiriman,
 } = require('../controller/customer-controller.js');
 const { AuthMiddleware } = require('../middleware/auth-middleware.js');
 const { isCustomer } = require('../middleware/role-middleware.js');
@@ -30,11 +32,23 @@ customerRoutes.get(
     isCustomer,
     getDetailOrder
 );
+customerRoutes.put(
+    '/customer/orders/:id',
+    AuthMiddleware,
+    isCustomer,
+    UpdateOrderTransaction
+);
+customerRoutes.patch(
+    '/customer/orders/:id/status-pengiriman',
+    AuthMiddleware,
+    isCustomer,
+    UpdateOrderStatusPengiriman
+);
 customerRoutes.post(
     '/customer/orders',
     AuthMiddleware,
     isCustomer,
-    createOrder
+    createOrderTransaction
 );
 
 module.exports = customerRoutes;

@@ -10,7 +10,7 @@ CREATE TABLE `sellers` (
     `kecamatan` VARCHAR(100) NOT NULL,
     `kelurahan` VARCHAR(100) NOT NULL,
     `kode_pos` VARCHAR(100) NOT NULL,
-    `alamat` TEXT NOT NULL,
+    `alamat` VARCHAR(255) NOT NULL,
     `no_hp` VARCHAR(15) NOT NULL,
     `ava_image_id` VARCHAR(255) NULL,
     `ava_image_url` VARCHAR(255) NULL,

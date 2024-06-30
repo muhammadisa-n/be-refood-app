@@ -17,9 +17,9 @@ module.exports = {
             'number.base': 'Field Harga Tidak Valid.',
             'number.positive': 'Field Harga Tidak Valid.',
         }),
-        category_id: Joi.number().positive().required().messages({
+        category_id: Joi.string().required().messages({
             'any.required': 'Field Category Id Harus Diisi',
-            'any.empty': 'Field Category Id Tidak Boleh Kosong',
+            'string.empty': 'Field Category Id Tidak Boleh Kosong',
         }),
     }),
 };

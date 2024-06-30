@@ -62,33 +62,6 @@ module.exports = {
             status_code: 200,
         });
     },
-    activateProduct: async (req, res) => {
-        try {
-            const product = await prisma.product.findFirst({
-                where: { id: req.params.id },
-            });
-            if (!product) {
-                return res.status(404).json({
-                    message: 'Product Tidak Ditemukan',
-                    status_code: 404,
-                });
-            }
-            await prisma.product.update({
-                where: { id: req.params.id },
-                data: {
-                    is_active: req.body.is_active,
-                },
-            });
-            return res.status(200).json({
-                message: 'Data Product Berhasil Diaktifkan',
-                status_code: 200,
-            });
-        } catch (error) {
-            return res
-                .status(500)
-                .json({ message: `${error.message}`, status_code: 500 });
-        }
-    },
     countProduct: async (req, res) => {
         try {
             const totalProduct = await prisma.product.count();
@@ -155,12 +128,21 @@ module.exports = {
                 .status(400)
                 .json({ message: `${errors}`, status_code: 400 });
         }
+        const categoryExist = await prisma.category.findFirst({
+            where: { nama: validate.value.nama },
+        });
+        if (categoryExist) {
+            return res
+                .status(409)
+                .json({ message: `Data Kagetori Sudah Ada`, status_code: 409 });
+        }
 
         try {
-            const { nama } = validate.value;
             await prisma.category.create({
                 data: {
-                    nama: nama,
+                    nama: validate.value.nama,
+                    created_at: new Date(),
+                    updated_at: new Date(),
                 },
             });
             return res.status(201).json({
@@ -175,9 +157,8 @@ module.exports = {
     },
     getDetailCategory: async (req, res) => {
         const category = await prisma.category.findUnique({
-            where: { id: Number(req.params.id) },
+            where: { id: req.params.id },
         });
-
         if (!category) {
             return res
                 .status(404)
@@ -200,7 +181,7 @@ module.exports = {
                 .json({ message: `${errors}`, status_code: 400 });
         }
         const category = await prisma.category.findFirst({
-            where: { id: Number(req.params.id) },
+            where: { id: req.params.id },
         });
         if (!category)
             return res
@@ -210,7 +191,7 @@ module.exports = {
         try {
             const { nama } = validate.value;
             await prisma.category.update({
-                where: { id: Number(req.params.id) },
+                where: { id: req.params.id },
                 data: {
                     nama: nama,
                 },
@@ -226,23 +207,16 @@ module.exports = {
         }
     },
     deleteCategory: async (req, res) => {
-        const category_id = Number(req.params.id);
-        if (isNaN(category_id)) {
-            return res
-                .status(404)
-                .json({ message: 'Data Kategori Tidak Ada', status_code: 404 });
-        }
         const category = await prisma.category.findUnique({
-            where: { id: category_id },
+            where: { id: req.params.id },
         });
-
         if (!category)
             return res
                 .status(404)
                 .json({ message: 'Data Kategori Tidak Ada', status_code: 404 });
         const CategoryUsed = await prisma.product.findMany({
             where: {
-                category_id: category_id,
+                category_id: req.params.id,
             },
         });
 
@@ -255,7 +229,7 @@ module.exports = {
         }
         try {
             await prisma.category.delete({
-                where: { id: Number(req.params.id) },
+                where: { id: req.params.id },
             });
             return res.status(200).json({
                 message: 'Data Kategori Berhasil Dihapus',

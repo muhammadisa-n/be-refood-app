@@ -4,7 +4,7 @@ module.exports = {
     getAllCategory: async (req, res) => {
         try {
             const categories = await prisma.category.findMany({
-                orderBy: { nama: 'desc' },
+                orderBy: { updated_at: 'desc' },
             });
             const totalCategory = await prisma.category.count();
             res.status(200).json({

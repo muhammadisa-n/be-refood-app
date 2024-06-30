@@ -8,6 +8,9 @@ const {
     updateProduct,
     countProduct,
     verifySeller,
+    getAllOrder,
+    getDetailOrder,
+    UpdateOrderStatusPengiriman,
 } = require('../controller/seller-controller.js');
 const { isSeller } = require('../middleware/role-middleware.js');
 
@@ -17,11 +20,18 @@ sellerRoutes.post('/seller/activate', AuthMiddleware, isSeller, verifySeller);
 
 // products
 sellerRoutes.get('/seller/products', AuthMiddleware, isSeller, getAllProduct);
+sellerRoutes.get('/seller/orders', AuthMiddleware, isSeller, getAllOrder);
 sellerRoutes.get(
     '/seller/products/:id',
     AuthMiddleware,
     isSeller,
     getDetailProduct
+);
+sellerRoutes.get(
+    '/seller/orders/:id',
+    AuthMiddleware,
+    isSeller,
+    getDetailOrder
 );
 sellerRoutes.post('/seller/products', AuthMiddleware, isSeller, createProduct);
 sellerRoutes.put(
@@ -42,5 +52,10 @@ sellerRoutes.get(
     isSeller,
     countProduct
 );
-
+sellerRoutes.patch(
+    '/seller/orders/:id/status-pengiriman',
+    AuthMiddleware,
+    isSeller,
+    UpdateOrderStatusPengiriman
+);
 module.exports = sellerRoutes;

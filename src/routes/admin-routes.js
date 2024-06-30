@@ -10,7 +10,6 @@ const {
     deleteCategory,
     updateCategory,
     getDetailCategory,
-    activateProduct,
     activateSeller,
     getAllSeller,
     getAllCategory,
@@ -29,12 +28,6 @@ adminRoutes.get(
     getDetailProduct
 );
 adminRoutes.get('/admin/product/count', AuthMiddleware, isAdmin, countProduct);
-adminRoutes.patch(
-    '/admin/products/:id/activate',
-    AuthMiddleware,
-    isAdmin,
-    activateProduct
-);
 
 // Categories
 adminRoutes.get('/admin/categories', AuthMiddleware, isAdmin, getAllCategory);

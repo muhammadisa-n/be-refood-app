@@ -27,11 +27,11 @@ router.use('/api/', AdminRoutes);
 router.use('/api/', SellerRoutes);
 router.use('/api/', CustomerRoutes);
 router.use('/api/', userRoutes);
-
-router.use('*', (req, res) => {
+router.use('*', (req, res, next) => {
     res.status(404).json({
-        message: 'Request Not Found, Bad Request',
+        message: 'Request Not Found',
         status_code: 404,
     });
 });
+
 module.exports = router;

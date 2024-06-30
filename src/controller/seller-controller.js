@@ -54,6 +54,55 @@ module.exports = {
                 .json({ message: `${error.message}`, status_code: 500 });
         }
     },
+    getAllOrder: async (req, res) => {
+        const page = Number(req.query.page) || 1;
+        const take = Number(req.query.take) || 10;
+        const skip = (page - 1) * take;
+        const filters = [];
+        filters.push({
+            Product: { seller_id: req.userData.user_id },
+        });
+        if (req.query.search) {
+            filters.push({
+                Product: {
+                    nama: {
+                        contains: req.query.search,
+                    },
+                },
+            });
+        }
+        try {
+            const orders = await prisma.order.findMany({
+                where: { AND: filters },
+                take: take,
+                skip: skip,
+                orderBy: { updated_at: 'desc' },
+                include: {
+                    Product: true,
+                    Transaction: true,
+                },
+            });
+            const totalOrder = await prisma.order.count({
+                where: {
+                    AND: filters,
+                },
+            });
+            res.status(200).json({
+                message: 'Sukses',
+                orders,
+                total_order: totalOrder,
+                paging: {
+                    current_page: page,
+                    total_page: Math.ceil(totalOrder / take),
+                },
+                status_code: 200,
+            });
+        } catch (error) {
+            return res
+                .status(500)
+                .json({ message: `${error.message}`, status_code: 500 });
+        }
+    },
     getDetailProduct: async (req, res) => {
         try {
             const product = await prisma.product.findFirst({
@@ -70,6 +119,32 @@ module.exports = {
             return res.status(200).json({
                 message: 'Data Product Ditemukan',
                 product,
+                status_code: 200,
+            });
+        } catch (error) {
+            return res
+                .status(500)
+                .json({ message: `${error.message}`, status_code: 500 });
+        }
+    },
+    getDetailOrder: async (req, res) => {
+        try {
+            const order = await prisma.order.findFirst({
+                where: { id: req.params.id },
+                include: {
+                    Product: true,
+                    Transaction: true,
+                    Customer: true,
+                },
+            });
+            if (!order)
+                return res.status(404).json({
+                    message: 'Data Order Tidak Ditemukan',
+                    status_code: 404,
+                });
+            return res.status(200).json({
+                message: 'Data Order Ditemukan',
+                order,
                 status_code: 200,
             });
         } catch (error) {
@@ -374,6 +449,36 @@ module.exports = {
                 .status(200)
                 .json({ message: 'Sukses', status_code: 200 });
         } catch (error) {
+            return res
+                .status(500)
+                .json({ message: `${error.message}`, status_code: 500 });
+        }
+    },
+    UpdateOrderStatusPengiriman: async (req, res) => {
+        const order = await prisma.order.findUnique({
+            where: {
+                id: req.params.id,
+            },
+        });
+        if (!order) {
+            return res.status(404).json({
+                message: 'Data Order Tidak Ditemukan',
+                status_code: 404,
+            });
+        }
+        try {
+            await prisma.order.update({
+                where: { id: order.id },
+                data: {
+                    status_pengiriman: req.body.status_pengiriman,
+                },
+            });
+            return res.status(200).json({
+                message: 'Data Order Berhasil Diubah',
+                status_code: 200,
+            });
+        } catch (error) {
+            console.error(error.message);
             return res
                 .status(500)
                 .json({ message: `${error.message}`, status_code: 500 });
