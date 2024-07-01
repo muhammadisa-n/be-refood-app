@@ -342,11 +342,11 @@ module.exports = {
             await prisma.order.update({
                 where: { id: order.id },
                 data: {
-                    status_pengiriman: SUKSES,
+                    status_pengiriman: 'SUKSES',
                 },
             });
             return res.status(200).json({
-                message: 'Data Order Berhasil Diubah',
+                message: 'Sukses',
                 status_code: 200,
             });
         } catch (error) {
