@@ -254,6 +254,12 @@ module.exports = {
                 },
             });
         }
+        if (req.query.status) {
+            filters.push({
+                is_active: req.query.status === 'true' ? true : false,
+            });
+        }
+
         try {
             const sellers = await prisma.seller.findMany({
                 where: { AND: filters },
@@ -312,7 +318,7 @@ module.exports = {
                 .json({ message: `${error.message}`, status_code: 500 });
         }
     },
-    activateSeller: async (req, res) => {
+    updateSellerStatus: async (req, res) => {
         try {
             const seller = await prisma.seller.findFirst({
                 where: { id: req.params.id },

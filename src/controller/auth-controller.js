@@ -149,15 +149,14 @@ module.exports = {
 
             if (!user) {
                 return res.status(401).json({
-                    message: 'Email Atau Password Salah!',
+                    message: 'Email Tidak Terdaftar',
                     status_code: 401,
                 });
             }
-
             const match = await bcrypt.compare(password, user.password);
             if (!match) {
                 return res.status(401).json({
-                    message: 'Email Atau Password Salah!',
+                    message: 'Password Salah',
                     status_code: 401,
                 });
             }

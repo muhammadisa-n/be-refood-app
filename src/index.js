@@ -10,10 +10,11 @@ const { connectDatabase } = require('./utils/prisma.js');
 const port = process.env.PORT_APP;
 const app = express();
 const clientUrl = process.env.CLIENT_URL;
+const corsOption = {};
 app.use(
     cors({
-        credentials: true,
         origin: [clientUrl],
+        credentials: true,
     })
 );
 connectDatabase();

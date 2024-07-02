@@ -10,7 +10,7 @@ const {
     deleteCategory,
     updateCategory,
     getDetailCategory,
-    activateSeller,
+    updateSellerStatus,
     getAllSeller,
     getAllCategory,
     getAllCustomer,
@@ -53,10 +53,10 @@ adminRoutes.delete(
 
 // Sellers
 adminRoutes.patch(
-    '/admin/sellers/:id/activate',
+    '/admin/sellers/:id/status',
     AuthMiddleware,
     isAdmin,
-    activateSeller
+    updateSellerStatus
 );
 adminRoutes.get('/admin/sellers', AuthMiddleware, isAdmin, getAllSeller);
 adminRoutes.get('/admin/sellers/:id', AuthMiddleware, isAdmin, getDetailSeller);

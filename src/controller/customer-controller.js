@@ -137,7 +137,14 @@ module.exports = {
                     customer_id: req.userData.user_id,
                 },
                 include: {
-                    Product: true,
+                    Product: {
+                        select: {
+                            nama: true,
+                            harga: true,
+                            Seller: true,
+                            image_url: true,
+                        },
+                    },
                     Customer: { select: { nama: true, no_hp: true } },
                     Transaction: true,
                 },
@@ -273,7 +280,7 @@ module.exports = {
                 .json({ message: `${error.message}`, status_code: 500 });
         }
     },
-    UpdateOrderTransaction: async (req, res) => {
+    updateOrderTransaction: async (req, res) => {
         const order = await prisma.order.findUnique({
             where: {
                 id: req.params.id,
@@ -293,14 +300,14 @@ module.exports = {
             status_transaksi,
             waktu_transaksi,
             total_pembayaran,
-            status_bayar,
+            status_order,
         } = req.body;
         try {
             await prisma.$transaction([
                 prisma.order.update({
                     where: { id: order.id },
                     data: {
-                        status_bayar: status_bayar,
+                        status_order: status_order,
                     },
                 }),
                 prisma.transaction.update({
@@ -325,7 +332,7 @@ module.exports = {
             status_code: 200,
         });
     },
-    UpdateOrderStatusPengiriman: async (req, res) => {
+    updateOrderStatusPengiriman: async (req, res) => {
         const order = await prisma.order.findUnique({
             where: {
                 id: req.params.id,
@@ -350,7 +357,37 @@ module.exports = {
                 status_code: 200,
             });
         } catch (error) {
-            console.error(error.message);
+            return res
+                .status(500)
+                .json({ message: `${error.message}`, status_code: 500 });
+        }
+    },
+    cancelOrder: async (req, res) => {
+        const order = await prisma.order.findUnique({
+            where: {
+                id: req.params.id,
+                customer_id: req.userData.user_id,
+            },
+        });
+        if (!order) {
+            return res.status(404).json({
+                message: 'Data Order Tidak Ditemukan',
+                status_code: 404,
+            });
+        }
+        try {
+            await prisma.order.update({
+                where: { id: order.id },
+                data: {
+                    status_order: 'CANCEL',
+                    token_transaction: null,
+                },
+            });
+            return res.status(200).json({
+                message: 'Sukses',
+                status_code: 200,
+            });
+        } catch (error) {
             return res
                 .status(500)
                 .json({ message: `${error.message}`, status_code: 500 });

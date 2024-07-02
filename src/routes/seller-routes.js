@@ -11,6 +11,7 @@ const {
     getAllOrder,
     getDetailOrder,
     UpdateOrderStatusPengiriman,
+    countOrder,
 } = require('../controller/seller-controller.js');
 const { isSeller } = require('../middleware/role-middleware.js');
 
@@ -58,4 +59,5 @@ sellerRoutes.patch(
     isSeller,
     UpdateOrderStatusPengiriman
 );
+sellerRoutes.get('/seller/order/count', AuthMiddleware, isSeller, countOrder);
 module.exports = sellerRoutes;

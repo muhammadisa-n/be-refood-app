@@ -6,8 +6,9 @@ const {
     createOrderTransaction,
     getAllOrder,
     getDetailOrder,
-    UpdateOrderTransaction,
-    UpdateOrderStatusPengiriman,
+    updateOrderTransaction,
+    updateOrderStatusPengiriman,
+    cancelOrder,
 } = require('../controller/customer-controller.js');
 const { AuthMiddleware } = require('../middleware/auth-middleware.js');
 const { isCustomer } = require('../middleware/role-middleware.js');
@@ -36,13 +37,19 @@ customerRoutes.put(
     '/customer/orders/:id',
     AuthMiddleware,
     isCustomer,
-    UpdateOrderTransaction
+    updateOrderTransaction
 );
 customerRoutes.patch(
     '/customer/orders/:id/status-pengiriman',
     AuthMiddleware,
     isCustomer,
-    UpdateOrderStatusPengiriman
+    updateOrderStatusPengiriman
+);
+customerRoutes.patch(
+    '/customer/orders/:id/cancel',
+    AuthMiddleware,
+    isCustomer,
+    cancelOrder
 );
 customerRoutes.post(
     '/customer/orders',

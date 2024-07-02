@@ -5,6 +5,11 @@ module.exports = {
         const take = Number(req.query.take) || 10;
         const skip = (page - 1) * take;
         const filters = [];
+        filters.push({
+            Seller: {
+                is_active: true,
+            },
+        });
         if (req.query.search) {
             filters.push({
                 nama: {

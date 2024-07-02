@@ -44,7 +44,7 @@ model Seller {
   link_map_alamat_toko     String?   @db.VarChar(100)
   sample_image_product_id  String?   @db.VarChar(255)
   sample_image_product_url String?   @db.VarChar(255)
-  is_active                Boolean   @default(false)
+  is_active                Boolean?
   verified_at              DateTime? @db.Timestamp()
   refresh_token            String?   @db.VarChar(500)
   created_at               DateTime  @db.Timestamp()
@@ -125,7 +125,7 @@ enum status {
   SUKSES
   PROSES
   PENDING
-  GAGAL
+  CANCEL
 }
 
 model Order {
@@ -134,7 +134,7 @@ model Order {
   customer_id       String
   total_produk      Int
   total_harga       Int
-  status_bayar      status       @default(PENDING)
+  status_order      status       @default(PENDING)
   status_pengiriman status       @default(PENDING)
   alamat_pengiriman String       @db.Text
   token_transaction String?      @db.VarChar(255)
@@ -147,14 +147,20 @@ model Order {
   @@map("orders")
 }
 
+enum status_transaksi {
+  settlement
+  pending
+  deny
+}
+
 model Transaction {
-  order_id         String    @unique
-  transaction_id   String?   @db.VarChar(191)
-  tipe_pembayaran  String?   @db.VarChar(100)
-  status_transaksi String?   @db.VarChar(100)
+  order_id         String            @unique
+  transaction_id   String?           @db.VarChar(191)
+  tipe_pembayaran  String?           @db.VarChar(100)
+  status_transaksi status_transaksi? @default(pending)
   total_pembayaran Int?
-  waktu_transaksi  DateTime? @db.Timestamp()
-  Order            Order     @relation(fields: [order_id], references: [id])
+  waktu_transaksi  DateTime?         @db.Timestamp()
+  Order            Order             @relation(fields: [order_id], references: [id])
 
   @@map("transactions")
 }

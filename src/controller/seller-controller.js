@@ -454,6 +454,22 @@ module.exports = {
                 .json({ message: `${error.message}`, status_code: 500 });
         }
     },
+    countOrder: async (req, res) => {
+        try {
+            const totalOrder = await prisma.order.count({
+                where: { Product: { seller_id: req.userData.user_id } },
+            });
+            res.status(200).json({
+                message: 'Sukses',
+                total_order: totalOrder,
+                status_code: 200,
+            });
+        } catch (error) {
+            return res
+                .status(500)
+                .json({ message: `${error.message}`, status_code: 500 });
+        }
+    },
     UpdateOrderStatusPengiriman: async (req, res) => {
         const order = await prisma.order.findUnique({
             where: {
