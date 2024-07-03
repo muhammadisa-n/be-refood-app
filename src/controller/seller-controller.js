@@ -1,6 +1,9 @@
 const { prisma } = require('../utils/prisma.js');
 const cloudinary = require('../utils/cloudinary.js');
-const { productValidation } = require('../validation/product-validation.js');
+const {
+    productValidation,
+    editProductValidation,
+} = require('../validation/product-validation.js');
 const {
     VerificationSellerValidation,
 } = require('../validation/seller-validation.js');
@@ -256,7 +259,7 @@ module.exports = {
                 status_code: 403,
             });
         }
-        const validate = productValidation.validate(req.body, {
+        const validate = editProductValidation.validate(req.body, {
             allowUnknown: true,
         });
         if (validate.error) {
@@ -309,14 +312,12 @@ module.exports = {
             imageUrl = result.secure_url;
         }
         try {
-            const { nama, deskripsi, harga, category_id } = validate.value;
+            const { deskripsi, harga } = validate.value;
             await prisma.product.update({
                 where: { id: req.params.id },
                 data: {
-                    nama: nama,
                     deskripsi: deskripsi,
                     harga: harga,
-                    category_id: category_id,
                     image_id: imageId,
                     image_url: imageUrl,
                     updated_at: new Date(),

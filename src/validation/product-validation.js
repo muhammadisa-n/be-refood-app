@@ -22,4 +22,16 @@ module.exports = {
             'string.empty': 'Field Category Id Tidak Boleh Kosong',
         }),
     }),
+    editProductValidation: Joi.object({
+        deskripsi: Joi.string().required().messages({
+            'any.required': 'Field Deskripsi Harus Diisi',
+            'string.empty': 'Field Deskripsi Tidak Boleh Kosong',
+        }),
+        harga: Joi.number().positive().required().messages({
+            'any.required': 'Field Harga Harus Diisi',
+            'any.empty': 'Field Harga Tidak Boleh Kosong',
+            'number.base': 'Field Harga Tidak Valid.',
+            'number.positive': 'Field Harga Tidak Valid.',
+        }),
+    }),
 };
