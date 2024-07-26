@@ -8,11 +8,12 @@ const {
     verifyForgotPassword,
     requestForgotPassword,
 } = require('../controller/auth-controller.js');
-const { getAllCategory } = require('../controller/category-controller.js');
+
 const {
+    getAllCategory,
     getAllProduct,
     getDetailProduct,
-} = require('../controller/product-controller.js');
+} = require('../controller/public-controller.js');
 
 const publicRoutes = express.Router();
 // Auth

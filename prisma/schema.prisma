@@ -1,5 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
+
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
@@ -21,34 +22,39 @@ model Admin {
   ava_image_id  String?   @db.VarChar(255)
   ava_image_url String?   @db.VarChar(255)
   refresh_token String?   @db.VarChar(500)
-  verified_at   DateTime? @db.Timestamp()
+  verified_at   DateTime? @db.Timestamp(0)
 
   @@map("admin")
 }
 
+enum status_seller {
+  Diterima
+  Ditolak
+}
+
 model Seller {
-  id                       String    @id @default(uuid())
-  nama                     String    @db.VarChar(100)
-  deskripsi                String?   @db.Text()
-  email                    String    @unique @db.VarChar(100)
-  password                 String    @db.VarChar(100)
-  provinsi                 String    @db.VarChar(100)
-  kota                     String    @db.VarChar(100)
-  kecamatan                String    @db.VarChar(100)
-  kelurahan                String    @db.VarChar(100)
-  kode_pos                 String    @db.VarChar(100)
-  alamat                   String    @db.VarChar(255)
-  no_hp                    String    @unique @db.VarChar(15)
-  ava_image_id             String?   @db.VarChar(255)
-  ava_image_url            String?   @db.VarChar(255)
-  link_map_alamat_toko     String?   @db.VarChar(100)
-  sample_image_product_id  String?   @db.VarChar(255)
-  sample_image_product_url String?   @db.VarChar(255)
-  is_active                Boolean?
-  verified_at              DateTime? @db.Timestamp()
-  refresh_token            String?   @db.VarChar(500)
-  created_at               DateTime  @db.Timestamp()
-  updated_at               DateTime  @db.Timestamp()
+  id                       String         @id @default(uuid())
+  nama                     String         @db.VarChar(100)
+  deskripsi                String?        @db.Text()
+  email                    String         @unique @db.VarChar(100)
+  password                 String         @db.VarChar(100)
+  provinsi                 String         @db.VarChar(100)
+  kota                     String         @db.VarChar(100)
+  kecamatan                String         @db.VarChar(100)
+  kelurahan                String         @db.VarChar(100)
+  kode_pos                 String         @db.VarChar(100)
+  alamat                   String         @db.VarChar(255)
+  no_hp                    String         @unique @db.VarChar(15)
+  ava_image_id             String?        @db.VarChar(255)
+  ava_image_url            String?        @db.VarChar(255)
+  link_map_alamat_toko     String?        @db.VarChar(100)
+  sample_image_product_id  String?        @db.VarChar(255)
+  sample_image_product_url String?        @db.VarChar(255)
+  status                   status_seller?
+  verified_at              DateTime?      @db.Timestamp(0)
+  refresh_token            String?        @db.VarChar(500)
+  created_at               DateTime       @default(now()) @db.Timestamp(0)
+  updated_at               DateTime       @default(now()) @db.Timestamp(0)
   Products                 Product[]
 
   @@map("sellers")
@@ -68,10 +74,10 @@ model Customer {
   no_hp         String    @unique @db.VarChar(15)
   ava_image_id  String?   @db.VarChar(255)
   ava_image_url String?   @db.VarChar(255)
-  verified_at   DateTime? @db.Timestamp()
+  verified_at   DateTime? @db.Timestamp(0)
   refresh_token String?   @db.VarChar(500)
-  created_at    DateTime  @db.Timestamp()
-  updated_at    DateTime  @db.Timestamp()
+  created_at    DateTime  @default(now()) @db.Timestamp(0)
+  updated_at    DateTime  @default(now()) @db.Timestamp(0)
   Carts         Cart[]
   Orders        Order[]
 
@@ -81,28 +87,28 @@ model Customer {
 model Category {
   id         String    @id @default(uuid())
   nama       String    @unique @db.VarChar(100)
-  created_at DateTime  @db.Timestamp()
-  updated_at DateTime  @db.Timestamp()
+  created_at DateTime  @default(now()) @db.Timestamp(0)
+  updated_at DateTime  @default(now()) @db.Timestamp(0)
   Products   Product[]
 
   @@map("categories")
 }
 
 model Product {
-  id          String   @id @default(uuid())
-  nama        String   @db.VarChar(100)
-  deskripsi   String   @db.Text()
-  harga       Int
-  image_id    String   @db.VarChar(255)
-  image_url   String   @db.VarChar(255)
-  created_at  DateTime @db.Timestamp()
-  updated_at  DateTime @db.Timestamp()
-  category_id String
-  seller_id   String   @db.VarChar(100)
-  Category    Category @relation(fields: [category_id], references: [id])
-  Seller      Seller   @relation(fields: [seller_id], references: [id])
-  Carts       Cart[]
-  Orders      Order[]
+  id            String         @id @default(uuid())
+  nama          String         @db.VarChar(100)
+  deskripsi     String         @db.Text()
+  harga         Int
+  image_id      String         @db.VarChar(255)
+  image_url     String         @db.VarChar(255)
+  created_at    DateTime       @default(now()) @db.Timestamp(0)
+  updated_at    DateTime       @default(now()) @db.Timestamp(0)
+  category_id   String
+  seller_id     String         @db.VarChar(100)
+  Category      Category       @relation(fields: [category_id], references: [id])
+  Seller        Seller         @relation(fields: [seller_id], references: [id])
+  Carts         Cart[]
+  OrderProducts OrderProduct[]
 
   @@map("products")
 }
@@ -113,54 +119,53 @@ model Cart {
   total_harga  Int
   customer_id  String
   product_id   String   @unique
-  created_at   DateTime @db.Timestamp()
-  updated_at   DateTime @db.Timestamp()
+  created_at   DateTime @default(now()) @db.Timestamp(0)
+  updated_at   DateTime @default(now()) @db.Timestamp(0)
   Product      Product  @relation(fields: [product_id], references: [id])
   Customer     Customer @relation(fields: [customer_id], references: [id])
 
   @@map("carts")
 }
 
-enum status {
+enum order_status {
   SUKSES
   PROSES
   PENDING
   CANCEL
 }
 
+enum transactions_status {
+  PENDING
+  PAID
+  CANCEL
+  FAIL
+}
+
 model Order {
-  id                String       @id @db.VarChar(191)
-  product_id        String
+  id                String               @id @db.VarChar(191)
   customer_id       String
   total_produk      Int
   total_harga       Int
-  status_order      status       @default(PENDING)
-  status_pengiriman status       @default(PENDING)
-  alamat_pengiriman String       @db.Text
-  token_transaction String?      @db.VarChar(255)
-  created_at        DateTime     @db.Timestamp()
-  updated_at        DateTime     @db.Timestamp()
-  Product           Product      @relation(fields: [product_id], references: [id])
-  Customer          Customer     @relation(fields: [customer_id], references: [id])
-  Transaction       Transaction?
+  status_order      order_status         @default(PENDING)
+  status_transaksi  transactions_status? @default(PENDING)
+  token_transaction String?              @db.VarChar(255)
+  tipe_pembayaran   String?              @db.VarChar(100)
+  waktu_transaksi   DateTime?            @db.Timestamp(0)
+  created_at        DateTime             @default(now()) @db.Timestamp(0)
+  updated_at        DateTime             @default(now()) @db.Timestamp(0)
+  Customer          Customer             @relation(fields: [customer_id], references: [id])
+  OrderProducts     OrderProduct[]
 
   @@map("orders")
 }
 
-enum status_transaksi {
-  settlement
-  pending
-  deny
-}
+model OrderProduct {
+  id         String  @id @default(uuid())
+  order_id   String
+  product_id String
+  quantity   Int
+  Order      Order   @relation(fields: [order_id], references: [id])
+  Product    Product @relation(fields: [product_id], references: [id])
 
-model Transaction {
-  order_id         String            @unique
-  transaction_id   String?           @db.VarChar(191)
-  tipe_pembayaran  String?           @db.VarChar(100)
-  status_transaksi status_transaksi? @default(pending)
-  total_pembayaran Int?
-  waktu_transaksi  DateTime?         @db.Timestamp()
-  Order            Order             @relation(fields: [order_id], references: [id])
-
-  @@map("transactions")
+  @@map("order_products")
 }

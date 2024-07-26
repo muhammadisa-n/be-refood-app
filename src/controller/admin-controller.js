@@ -206,41 +206,6 @@ module.exports = {
                 .json({ message: `${error.message}`, status_code: 500 });
         }
     },
-    deleteCategory: async (req, res) => {
-        const category = await prisma.category.findUnique({
-            where: { id: req.params.id },
-        });
-        if (!category)
-            return res
-                .status(404)
-                .json({ message: 'Data Kategori Tidak Ada', status_code: 404 });
-        const CategoryUsed = await prisma.product.findMany({
-            where: {
-                category_id: req.params.id,
-            },
-        });
-
-        if (CategoryUsed.length > 0) {
-            return res.status(409).json({
-                message:
-                    'Tidak Dapat Menghapus Data Kategori, Ada Produk Yang Terhubung Ke Kategori Ini',
-                status_code: 409,
-            });
-        }
-        try {
-            await prisma.category.delete({
-                where: { id: req.params.id },
-            });
-            return res.status(200).json({
-                message: 'Data Kategori Berhasil Dihapus',
-                status_code: 200,
-            });
-        } catch (error) {
-            return res
-                .status(500)
-                .json({ message: `${error.message}`, status_code: 500 });
-        }
-    },
     // Sellers
     getAllSeller: async (req, res) => {
         const page = Number(req.query.page) || 1;
@@ -256,7 +221,7 @@ module.exports = {
         }
         if (req.query.status) {
             filters.push({
-                is_active: req.query.status === 'true' ? true : false,
+                status: req.query.status,
             });
         }
 
@@ -304,6 +269,22 @@ module.exports = {
             status_code: 200,
         });
     },
+    getDetailCustomer: async (req, res) => {
+        const customer = await prisma.customer.findUnique({
+            where: { id: req.params.id },
+        });
+
+        if (!customer) {
+            return res
+                .status(404)
+                .json({ message: 'Data Customer Tidak Ada', status_code: 404 });
+        }
+        return res.status(200).json({
+            message: 'Data Customer Ditemukan',
+            customer,
+            status_code: 200,
+        });
+    },
     countSeller: async (req, res) => {
         try {
             const totalSeller = await prisma.seller.count();
@@ -332,11 +313,11 @@ module.exports = {
             await prisma.seller.update({
                 where: { id: req.params.id },
                 data: {
-                    is_active: req.body.is_active,
+                    status: req.body.status,
                 },
             });
             return res.status(200).json({
-                message: 'Seller Berhasil Diaktifkan',
+                message: 'Seller Status Diubah',
                 status_code: 200,
             });
         } catch (error) {

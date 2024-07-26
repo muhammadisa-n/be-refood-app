@@ -7,7 +7,6 @@ const {
     countCustomer,
     countProduct,
     createCategory,
-    deleteCategory,
     updateCategory,
     getDetailCategory,
     updateSellerStatus,
@@ -15,10 +14,12 @@ const {
     getAllCategory,
     getAllCustomer,
     getDetailSeller,
+    getDetailCustomer,
 } = require('../controller/admin-controller.js');
 const { isAdmin } = require('../middleware/role-middleware.js');
 
 const adminRoutes = express.Router();
+
 // Products
 adminRoutes.get('/admin/products', AuthMiddleware, isAdmin, getAllProduct);
 adminRoutes.get(
@@ -44,12 +45,6 @@ adminRoutes.put(
     isAdmin,
     updateCategory
 );
-adminRoutes.delete(
-    '/admin/categories/:id',
-    AuthMiddleware,
-    isAdmin,
-    deleteCategory
-);
 
 // Sellers
 adminRoutes.patch(
@@ -64,6 +59,12 @@ adminRoutes.get('/admin/seller/count', AuthMiddleware, isAdmin, countSeller);
 
 // Customer
 adminRoutes.get('/admin/customers', AuthMiddleware, isAdmin, getAllCustomer);
+adminRoutes.get(
+    '/admin/customers/:id',
+    AuthMiddleware,
+    isAdmin,
+    getDetailCustomer
+);
 adminRoutes.get(
     '/admin/customer/count',
     AuthMiddleware,

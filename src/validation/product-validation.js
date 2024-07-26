@@ -1,7 +1,7 @@
 const Joi = require('joi');
 
 module.exports = {
-    productValidation: Joi.object({
+    createProductValidation: Joi.object({
         nama: Joi.string().required().max(100).messages({
             'any.required': 'Field Nama Harus Diisi',
             'string.empty': 'Field Nama Tidak Boleh Kosong',
@@ -22,7 +22,7 @@ module.exports = {
             'string.empty': 'Field Category Id Tidak Boleh Kosong',
         }),
     }),
-    editProductValidation: Joi.object({
+    updateProductValidation: Joi.object({
         deskripsi: Joi.string().required().messages({
             'any.required': 'Field Deskripsi Harus Diisi',
             'string.empty': 'Field Deskripsi Tidak Boleh Kosong',

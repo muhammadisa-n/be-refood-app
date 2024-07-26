@@ -1,8 +1,8 @@
 const { prisma } = require('../utils/prisma.js');
 const cloudinary = require('../utils/cloudinary.js');
 const {
-    productValidation,
-    editProductValidation,
+    createProductValidation,
+    updateProductValidation,
 } = require('../validation/product-validation.js');
 const {
     VerificationSellerValidation,
@@ -63,14 +63,14 @@ module.exports = {
         const skip = (page - 1) * take;
         const filters = [];
         filters.push({
-            Product: { seller_id: req.userData.user_id },
+            OrderProducts: {
+                some: { Product: { seller_id: req.userData.user_id } },
+            },
         });
         if (req.query.search) {
             filters.push({
-                Product: {
-                    nama: {
-                        contains: req.query.search,
-                    },
+                OrderProducts: {
+                    some: { Product: { nama: req.query.search } },
                 },
             });
         }
@@ -79,16 +79,13 @@ module.exports = {
                 where: { AND: filters },
                 take: take,
                 skip: skip,
-                orderBy: { updated_at: 'desc' },
                 include: {
-                    Product: true,
-                    Transaction: true,
+                    Customer: true,
+                    OrderProducts: { select: { Product: true } },
                 },
             });
             const totalOrder = await prisma.order.count({
-                where: {
-                    AND: filters,
-                },
+                where: { AND: filters },
             });
             res.status(200).json({
                 message: 'Sukses',
@@ -133,11 +130,14 @@ module.exports = {
     getDetailOrder: async (req, res) => {
         try {
             const order = await prisma.order.findFirst({
-                where: { id: req.params.id },
+                where: {
+                    id: req.params.id,
+                },
                 include: {
-                    Product: true,
-                    Transaction: true,
-                    Customer: true,
+                    OrderProducts: {
+                        select: { Product: true, quantity: true },
+                    },
+                    Customer: { select: { nama: true, no_hp: true } },
                 },
             });
             if (!order)
@@ -182,13 +182,13 @@ module.exports = {
         const seller = await prisma.seller.findFirst({
             where: { id: req.userData.user_id },
         });
-        if (seller.is_active === false) {
+        if (seller.status !== 'Diterima') {
             return res.status(403).json({
                 message: 'Akses Terlarang, Akun Anda Belum Aktif',
                 status_code: 403,
             });
         }
-        const validate = productValidation.validate(req.body, {
+        const validate = createProductValidation.validate(req.body, {
             allowUnknown: false,
         });
         if (validate.error) {
@@ -253,13 +253,13 @@ module.exports = {
         const seller = await prisma.seller.findFirst({
             where: { id: req.userData.user_id },
         });
-        if (seller.is_active === false) {
+        if (seller.status !== 'Diterima') {
             return res.status(403).json({
                 message: 'Akses Terlarang, Akun Anda Belum Aktif',
                 status_code: 403,
             });
         }
-        const validate = editProductValidation.validate(req.body, {
+        const validate = updateProductValidation.validate(req.body, {
             allowUnknown: true,
         });
         if (validate.error) {
@@ -333,52 +333,6 @@ module.exports = {
                 .json({ message: `${error.message}`, status_code: 500 });
         }
     },
-    deleteProduct: async (req, res) => {
-        const seller = await prisma.seller.findFirst({
-            where: { id: req.userData.user_id },
-        });
-        if (seller.is_active === false) {
-            return res.status(403).json({
-                message: 'Akses Terlarang, Akun Anda Belum Aktif',
-                status_code: 403,
-            });
-        }
-        const product = await prisma.product.findFirst({
-            where: { id: req.params.id, seller_id: req.userData.user_id },
-        });
-
-        if (!product)
-            return res.status(404).json({
-                message: 'Data Produk Tidak Ditemukan',
-                status_code: 404,
-            });
-
-        const [ProductUsedCart, ProductUsedOrder] = await prisma.$transaction([
-            prisma.cart.findMany({ where: { product_id: product.id } }),
-            prisma.order.findMany({ where: { product_id: product.id } }),
-        ]);
-        if (ProductUsedCart.length > 0 || ProductUsedOrder > 0) {
-            return res.status(409).json({
-                message:
-                    'Tidak Dapat Menghapus Data Produk. Ada Yang Terhubung Ke Produk Ini',
-                status_code: 409,
-            });
-        }
-        try {
-            await cloudinary.uploader.destroy(product.image_id);
-            await prisma.product.delete({
-                where: { id: req.params.id, seller_id: req.userData.user_id },
-            });
-            return res.status(200).json({
-                message: 'Data Produk Berhasil Dihapus',
-                status_code: 200,
-            });
-        } catch (error) {
-            return res
-                .status(500)
-                .json({ message: `${error.message}`, status_code: 500 });
-        }
-    },
     verifySeller: async (req, res) => {
         if (!req.files || !req.files.image) {
             return res.status(400).json({
@@ -444,6 +398,7 @@ module.exports = {
                     link_map_alamat_toko: link_map,
                     sample_image_product_id: result.public_id,
                     sample_image_product_url: result.secure_url,
+                    status: null,
                 },
             });
             return res
@@ -458,7 +413,11 @@ module.exports = {
     countOrder: async (req, res) => {
         try {
             const totalOrder = await prisma.order.count({
-                where: { Product: { seller_id: req.userData.user_id } },
+                where: {
+                    OrderProducts: {
+                        some: { Product: { seller_id: req.userData.user_id } },
+                    },
+                },
             });
             res.status(200).json({
                 message: 'Sukses',
@@ -471,34 +430,64 @@ module.exports = {
                 .json({ message: `${error.message}`, status_code: 500 });
         }
     },
-    UpdateOrderStatusPengiriman: async (req, res) => {
-        const order = await prisma.order.findUnique({
-            where: {
-                id: req.params.id,
-            },
-        });
-        if (!order) {
-            return res.status(404).json({
-                message: 'Data Order Tidak Ditemukan',
-                status_code: 404,
-            });
-        }
+    updateStatusOrder: async (req, res) => {
         try {
+            const order = await prisma.order.findFirst({
+                where: { id: req.params.id },
+            });
+            if (!order) {
+                return res.status(404).json({
+                    message: 'Data Order Tidak Ada',
+                    status_code: 404,
+                });
+            }
             await prisma.order.update({
                 where: { id: order.id },
                 data: {
-                    status_pengiriman: req.body.status_pengiriman,
+                    status_order: req.body.status_order,
                 },
             });
             return res.status(200).json({
-                message: 'Data Order Berhasil Diubah',
+                message: 'Sukses',
                 status_code: 200,
             });
         } catch (error) {
-            console.error(error.message);
             return res
                 .status(500)
                 .json({ message: `${error.message}`, status_code: 500 });
+        }
+    },
+    countPendapatan: async (req, res) => {
+        try {
+            const orders = await prisma.order.findMany({
+                where: {
+                    OrderProducts: {
+                        some: {
+                            Product: {
+                                seller_id: req.userData_user_id,
+                            },
+                        },
+                    },
+                    status_order: 'SUKSES',
+                },
+                select: {
+                    total_harga: true,
+                },
+            });
+            const totalPendapatan = orders.reduce(
+                (total, order) => total + order.total_harga,
+                0
+            );
+            return res.status(200).json({
+                message: 'Sukses',
+                total_pendapatan: totalPendapatan,
+                status_code: 200,
+            });
+        } catch (error) {
+            return res.status(500).json({
+                message: error.message,
+                status_code: 500,
+            });
         }
     },
 };
