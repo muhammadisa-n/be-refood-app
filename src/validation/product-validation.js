@@ -2,10 +2,10 @@ const Joi = require('joi');
 
 module.exports = {
     createProductValidation: Joi.object({
-        nama: Joi.string().required().max(100).messages({
+        nama: Joi.string().required().max(30).messages({
             'any.required': 'Field Nama Harus Diisi',
             'string.empty': 'Field Nama Tidak Boleh Kosong',
-            'string.max': 'Field Nama maksimal 100 Karakter',
+            'string.max': 'Field Nama maksimal 30 Karakter',
         }),
         deskripsi: Joi.string().required().messages({
             'any.required': 'Field Deskripsi Harus Diisi',

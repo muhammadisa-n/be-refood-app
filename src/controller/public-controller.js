@@ -6,20 +6,10 @@ module.exports = {
         const take = Number(req.query.take) || 10;
         const skip = (page - 1) * take;
         const filters = [];
-
         if (req.query.search) {
             filters.push({
                 nama: {
                     contains: req.query.search,
-                },
-            });
-        }
-        if (req.query.category_id) {
-            filters.push({
-                Category: {
-                    id: {
-                        contains: req.query.category_id,
-                    },
                 },
             });
         }
@@ -29,9 +19,10 @@ module.exports = {
                 where: { AND: filters },
                 take: take,
                 skip: skip,
-                orderBy: { updated_at: 'desc' },
+                orderBy: { created_at: 'desc' },
                 include: {
                     Category: true,
+                    Seller: true,
                 },
             });
             const totalProduct = await prisma.product.count({
@@ -83,7 +74,7 @@ module.exports = {
     getAllCategory: async (req, res) => {
         try {
             const categories = await prisma.category.findMany({
-                orderBy: { updated_at: 'desc' },
+                orderBy: { created_at: 'desc' },
             });
             const totalCategory = await prisma.category.count();
             res.status(200).json({

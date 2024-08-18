@@ -445,6 +445,7 @@ module.exports = {
                 where: { id: order.id },
                 data: {
                     status_order: req.body.status_order,
+                    updated_at: new Date(),
                 },
             });
             return res.status(200).json({
@@ -459,25 +460,36 @@ module.exports = {
     },
     countPendapatan: async (req, res) => {
         try {
+            const sellerId = req.userData.user_id;
+
+            if (!sellerId) {
+                return res.status(400).json({
+                    message: 'Seller ID is missing',
+                    status_code: 400,
+                });
+            }
+
             const orders = await prisma.order.findMany({
                 where: {
+                    status_order: 'SUKSES',
                     OrderProducts: {
                         some: {
                             Product: {
-                                seller_id: req.userData_user_id,
+                                seller_id: sellerId,
                             },
                         },
                     },
-                    status_order: 'SUKSES',
                 },
                 select: {
                     total_harga: true,
                 },
             });
-            const totalPendapatan = orders.reduce(
-                (total, order) => total + order.total_harga,
-                0
-            );
+
+            // Menghitung total pendapatan dari order yang berkaitan dengan seller yang login
+            const totalPendapatan = orders.reduce((total, order) => {
+                return total + order.total_harga;
+            }, 0);
+
             return res.status(200).json({
                 message: 'Sukses',
                 total_pendapatan: totalPendapatan,
@@ -485,6 +497,68 @@ module.exports = {
             });
         } catch (error) {
             return res.status(500).json({
+                message: error.message,
+                status_code: 500,
+            });
+        }
+    },
+    getPendapatanPerBulan: async (sellerId) => {
+        const orders = await prismaClient.order.findMany({
+            where: {
+                status_order: 'SUKSES',
+                OrderProducts: {
+                    some: {
+                        Product: {
+                            seller_id: sellerId,
+                        },
+                    },
+                },
+                waktu_transaksi: {
+                    not: null,
+                },
+            },
+            select: {
+                total_harga: true,
+                waktu_transaksi: true,
+            },
+        });
+
+        // Menghitung total pendapatan per bulan
+        const pendapatanPerBulan = orders.reduce((acc, order) => {
+            const month = new Date(order.waktu_transaksi).getMonth() + 1;
+            if (!acc[month]) {
+                acc[month] = 0;
+            }
+            acc[month] += order.total_harga;
+            return acc;
+        }, {});
+
+        // Format data menjadi array objek
+        return Object.keys(pendapatanPerBulan).map((month) => ({
+            month: parseInt(month, 10),
+            total_pendapatan: pendapatanPerBulan[month],
+        }));
+    },
+    countPendapatanPerBulan: async (req, res) => {
+        try {
+            const sellerId = req.userData.user_id; // Misalkan user_id diambil dari middleware autentikasi
+
+            if (!sellerId) {
+                return res.status(400).json({
+                    message: 'Seller ID is missing',
+                    status_code: 400,
+                });
+            }
+
+            const dataPendapatan = await this.getPendapatanPerBulan(sellerId);
+
+            res.status(200).json({
+                message: 'Sukses',
+                pendapatan_per_bulan: dataPendapatan,
+                status_code: 200,
+            });
+        } catch (error) {
+            res.status(500).json({
                 message: error.message,
                 status_code: 500,
             });

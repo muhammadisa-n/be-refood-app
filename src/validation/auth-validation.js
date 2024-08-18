@@ -1,16 +1,16 @@
 const Joi = require('joi');
 module.exports = {
     registerValidation: Joi.object({
-        nama: Joi.string().required().max(100).messages({
+        nama: Joi.string().required().max(30).messages({
             'any.required': 'Field Nama Harus Diisi',
             'string.empty': 'Field Nama Tidak Boleh Kosong',
-            'string.max': 'Field Nama Maksimal 100 Karakter',
+            'string.max': 'Field Nama Maksimal 30 Karakter',
         }),
-        email: Joi.string().required().max(100).email().messages({
+        email: Joi.string().required().max(50).email().messages({
             'any.required': 'Field Email Harus Diisi',
             'string.empty': 'Field Email Tidak Boleh Kosong',
             'string.email': 'Field Email Tidak Valid',
-            'string.max': 'Field Email Maksimal 100 Karakter',
+            'string.max': 'Field Email Maksimal 50 Karakter',
         }),
         password: Joi.string().required().min(8).max(100).messages({
             'any.required': 'Field Password Harus Diisi',
@@ -30,35 +30,35 @@ module.exports = {
                 'string.max': 'Field Confirm Password max 100 character',
                 'any.only': 'Field Confirm Password Harus Sama Dengan Password',
             }),
-        provinsi: Joi.string().required().max(100).messages({
+        provinsi: Joi.string().required().max(30).messages({
             'any.required': 'Field Provinsi Harus Diisi',
             'string.empty': 'Field Provinsi Tidak Boleh Kosong',
-            'string.max': 'Field Provinsi Maksimal 100 Karakter',
+            'string.max': 'Field Provinsi Maksimal 30 Karakter',
         }),
-        kota: Joi.string().required().max(100).messages({
+        kota: Joi.string().required().max(30).messages({
             'any.required': 'Field Kota Harus Diisi',
             'string.empty': 'Field Kota Tidak Boleh Kosong',
-            'string.max': 'Field Kota Maksimal 100 Karakter',
+            'string.max': 'Field Kota Maksimal 30 Karakter',
         }),
-        kecamatan: Joi.string().required().max(100).messages({
+        kecamatan: Joi.string().required().max(30).messages({
             'any.required': 'Field Kecamatan Harus Diisi',
             'string.empty': 'Field Kecamatan Tidak Boleh Kosong',
-            'string.max': 'Field Kecamatan Maksimal 100 Karakter',
+            'string.max': 'Field Kecamatan Maksimal 30 Karakter',
         }),
-        kelurahan: Joi.string().required().max(100).messages({
+        kelurahan: Joi.string().required().max(30).messages({
             'any.required': 'Field Kelurahan Harus Diisi',
             'string.empty': 'Field Kelurahan Tidak Boleh Kosong',
-            'string.max': 'Field Kelurahan Maksimal 100 Karakter',
+            'string.max': 'Field Kelurahan Maksimal 30 Karakter',
         }),
-        kode_pos: Joi.string().required().max(100).messages({
+        kode_pos: Joi.string().required().max(5).messages({
             'any.required': 'Field Kode Pos Harus Diisi',
             'string.empty': 'Field Kode Pos Tidak Boleh Kosong',
-            'string.max': 'Field Kode Pos Maksimal 100 Karakter',
+            'string.max': 'Field Kode Pos Maksimal 5 Karakter',
         }),
-        alamat: Joi.string().required().max(255).messages({
+        alamat: Joi.string().required().max(100).messages({
             'any.required': 'Field Alamat Harus Diisi',
             'string.empty': 'Field Alamat Tidak Boleh Kosong',
-            'string.max': 'Field Alamat Maksimal 255 Karakter',
+            'string.max': 'Field Alamat Maksimal 100 Karakter',
         }),
         no_hp: Joi.string().required().min(12).max(15).messages({
             'any.required': 'Field No HP Harus Diisi',
@@ -69,16 +69,15 @@ module.exports = {
         role: Joi.string().required().valid('Seller', 'Customer').messages({
             'any.required': 'Field Role Harus Diisi',
             'string.empty': 'Field Role Tidak Boleh Kosong',
-            'string.max': 'Field Role Maksimal 100 Karakter',
             'any.only': 'Field Role Harus Seller Atau Customer',
         }),
     }),
     loginValidation: Joi.object({
-        email: Joi.string().required().max(100).email().messages({
+        email: Joi.string().required().max(50).email().messages({
             'any.required': 'Field Email Harus Diisi',
             'string.empty': 'Field Email Tidak Boleh Kosong',
             'string.email': 'Field Email Tidak Valid',
-            'string.max': 'Field Email Maksimal 100 Karakter',
+            'string.max': 'Field Email Maksimal 50 Karakter',
         }),
         password: Joi.string().required().min(8).max(100).messages({
             'any.required': 'Field Password Harus Diisi',
@@ -87,11 +86,11 @@ module.exports = {
             'string.max': 'Field Password Maksimal 100 Karakter',
         }),
     }),
-    emailValidation: Joi.string().required().max(100).email().messages({
+    emailValidation: Joi.string().required().max(50).email().messages({
         'any.required': 'Field Email Harus Diisi',
         'string.empty': 'Field Email Tidak Boleh Kosong',
         'string.email': 'Field Email Tidak Valid',
-        'string.max': 'Field Email Maksimal 100 Karakter',
+        'string.max': 'Field Email Maksimal 50 Karakter',
     }),
     forgotPasswordValidation: Joi.object({
         password: Joi.string().required().min(8).max(100).messages({

@@ -20,7 +20,7 @@ module.exports = {
                 where: { AND: filters },
                 take: take,
                 skip: skip,
-                orderBy: { updated_at: 'desc' },
+                orderBy: { created_at: 'desc' },
                 include: {
                     Category: { select: { nama: true } },
                 },
@@ -141,8 +141,6 @@ module.exports = {
             await prisma.category.create({
                 data: {
                     nama: validate.value.nama,
-                    created_at: new Date(),
-                    updated_at: new Date(),
                 },
             });
             return res.status(201).json({
@@ -314,6 +312,7 @@ module.exports = {
                 where: { id: req.params.id },
                 data: {
                     status: req.body.status,
+                    updated_at: new Date(),
                 },
             });
             return res.status(200).json({

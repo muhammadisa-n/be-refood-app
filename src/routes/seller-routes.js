@@ -12,6 +12,7 @@ const {
     countOrder,
     updateStatusOrder,
     countPendapatan,
+    countPendapatanPerBulan,
 } = require('../controller/seller-controller.js');
 const { isSeller } = require('../middleware/role-middleware.js');
 
@@ -59,5 +60,11 @@ sellerRoutes.get(
     AuthMiddleware,
     isSeller,
     countPendapatan
+);
+sellerRoutes.get(
+    '/seller/pendapatan/per-bulan',
+    AuthMiddleware,
+    isSeller,
+    countPendapatanPerBulan
 );
 module.exports = sellerRoutes;

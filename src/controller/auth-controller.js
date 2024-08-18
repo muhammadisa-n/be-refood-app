@@ -95,8 +95,6 @@ module.exports = {
                 alamat: alamat,
                 no_hp: no_hp,
                 verified_at: null,
-                created_at: new Date(),
-                updated_at: new Date(),
             };
             if (role === 'Seller') {
                 await prisma.seller.create({
@@ -177,7 +175,7 @@ module.exports = {
                 payload,
                 process.env.ACCESS_TOKEN_SECRET,
                 {
-                    expiresIn: '20m',
+                    expiresIn: '12h',
                 }
             );
             const refresh_token = jwt.sign(
@@ -341,7 +339,7 @@ module.exports = {
                 payload,
                 process.env.ACCESS_TOKEN_SECRET,
                 {
-                    expiresIn: '20m',
+                    expiresIn: '12h',
                 }
             );
             return res.status(200).json({

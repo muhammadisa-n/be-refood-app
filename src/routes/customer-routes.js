@@ -9,6 +9,7 @@ const {
     updateOrder,
     cancelOrder,
     updateStatusOrder,
+    getAllProductRecomendation,
 } = require('../controller/customer-controller.js');
 const { AuthMiddleware } = require('../middleware/auth-middleware.js');
 const { isCustomer } = require('../middleware/role-middleware.js');
@@ -58,4 +59,11 @@ customerRoutes.post(
     createOrder
 );
 
+// customer products
+customerRoutes.get(
+    '/customer/products',
+    AuthMiddleware,
+    isCustomer,
+    getAllProductRecomendation
+);
 module.exports = customerRoutes;

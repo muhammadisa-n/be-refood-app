@@ -161,7 +161,7 @@ module.exports = {
                         provinsi: provinsi || user.provinsi,
                         kota: kota || user.kota,
                         kecamatan: kecamatan || user.kecamatan,
-                        kecamatan: kecamatan || user.kecamatan,
+                        kelurahan: kelurahan || user.kelurahan,
                         kode_pos: kode_pos || user.kode_pos,
                         alamat: alamat || user.alamat,
                         no_hp: no_hp || user.no_hp,

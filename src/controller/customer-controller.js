@@ -3,7 +3,10 @@ const { prisma } = require('../utils/prisma.js');
 const uuid = require('uuid').v4;
 const snapMidtrans = require('../utils/midtrans.js');
 const { creatOrderValidation } = require('../validation/order-validation.js');
-
+const transporter = require('../utils/nodemailer.js');
+const mustache = require('mustache');
+const fs = require('fs');
+const path = require('path');
 module.exports = {
     // Cart
     getAllCart: async (req, res) => {
@@ -115,6 +118,7 @@ module.exports = {
         try {
             const orders = await prisma.order.findMany({
                 where: { customer_id: req.userData.user_id },
+                orderBy: { created_at: 'desc' },
                 include: {
                     OrderProducts: {
                         select: { Product: true, quantity: true },
@@ -177,6 +181,10 @@ module.exports = {
                 where: {
                     id: { in: productIds },
                 },
+                include: {
+                    Seller: true,
+                    Category: true,
+                },
             });
 
             if (products.length !== productIds.length) {
@@ -185,10 +193,28 @@ module.exports = {
                     status_code: 404,
                 });
             }
+            const sellerId = products[0].Seller.id;
+            const allSameSeller = products.every(
+                (product) => product.Seller.id === sellerId
+            );
+
+            if (!allSameSeller) {
+                return res.status(400).json({
+                    message:
+                        'Semua produk harus berasal dari penjual yang sama',
+                    status_code: 400,
+                });
+            }
 
             const customer = await prisma.customer.findUnique({
                 where: {
                     id: req.userData.user_id,
+                },
+            });
+
+            const seller = await prisma.seller.findFirst({
+                where: {
+                    id: sellerId,
                 },
             });
             const orderId = `ORD-${uuid()}`;
@@ -204,6 +230,8 @@ module.exports = {
                     price: product.harga,
                     quantity: orderProduct.quantity,
                     name: product.nama,
+                    category: product.Category.nama,
+                    merchant_name: product.Seller.nama,
                 };
             });
 
@@ -230,6 +258,7 @@ module.exports = {
                                 (total, p) => total + p.quantity,
                                 0
                             ),
+
                             total_harga: total_harga,
                             token_transaction: transactionData.token,
                         },
@@ -247,6 +276,35 @@ module.exports = {
                         }
                     );
                     await Promise.all(orderProductPromises);
+
+                    const url = `${process.env.CLIENT_URL}/my-dashboard/seller/orders/detail/${dataOrder.id}`;
+                    const template = fs.readFileSync(
+                        path.join(
+                            __dirname,
+                            '../templates/order-notification.mustache'
+                        ),
+                        'utf-8'
+                    );
+
+                    const data = {
+                        url,
+                        sellerName: seller.nama,
+                        orderId: dataOrder.id,
+                        totalHarga: dataOrder.total_harga,
+                        customerName: customer.nama,
+                    };
+                    const sendOrderNotificationTemplate = mustache.render(
+                        template,
+                        data
+                    );
+                    const mailOptions = {
+                        from: process.env.MAIL_FROM,
+                        to: seller.email,
+                        subject: 'Order Notification',
+                        html: sendOrderNotificationTemplate,
+                    };
+
+                    transporter.sendMail(mailOptions);
                     return res.status(201).json({
                         message: 'Data Order Berhasil Ditambah',
                         dataOrder: dataOrder,
@@ -285,7 +343,9 @@ module.exports = {
             waktu_transaksi,
             status_order,
             token_transaction,
+            jenis_layanan,
         } = req.body;
+
         try {
             await prisma.order.update({
                 where: { id: order.id },
@@ -294,8 +354,10 @@ module.exports = {
                     tipe_pembayaran: tipe_pembayaran,
                     status_transaksi: status_transaksi,
                     waktu_transaksi: waktu_transaksi,
+                    jenis_layanan: jenis_layanan,
                     token_transaction:
                         token_transaction || order.token_transaction,
+                    updated_at: new Date(),
                 },
             });
         } catch (error) {
@@ -330,6 +392,7 @@ module.exports = {
                     status_order: 'CANCEL',
                     status_transaksi: 'CANCEL',
                     token_transaction: null,
+                    updated_at: new Date(),
                 },
             });
             return res.status(200).json({
@@ -357,10 +420,64 @@ module.exports = {
                 where: { id: order.id },
                 data: {
                     status_order: req.body.status_order,
+                    updated_at: new Date(),
                 },
             });
             res.status(200).json({
                 message: 'Sukses',
+                status_code: 200,
+            });
+        } catch (error) {
+            return res
+                .status(500)
+                .json({ message: `${error.message}`, status_code: 500 });
+        }
+    },
+    getAllProductRecomendation: async (req, res) => {
+        const page = Number(req.query.page) || 1;
+        const take = Number(req.query.take) || 10;
+        const skip = (page - 1) * take;
+        const filters = [];
+        const customer = await prisma.customer.findFirst({
+            where: { id: req.userData.user_id },
+        });
+        let customerKota = customer.kota;
+        console.log(customerKota);
+        filters.push({
+            Seller: { kota: customerKota },
+        });
+        if (req.query.search) {
+            filters.push({
+                nama: {
+                    contains: req.query.search,
+                },
+            });
+        }
+
+        try {
+            const products = await prisma.product.findMany({
+                where: { AND: filters },
+                take: take,
+                skip: skip,
+                orderBy: { created_at: 'desc' },
+                include: {
+                    Category: true,
+                    Seller: true,
+                },
+            });
+            const totalProduct = await prisma.product.count({
+                where: {
+                    AND: filters,
+                },
+            });
+            res.status(200).json({
+                message: 'Sukses',
+                products,
+                total_product: totalProduct,
+                paging: {
+                    current_page: page,
+                    total_page: Math.ceil(totalProduct / take),
+                },
                 status_code: 200,
             });
         } catch (error) {
