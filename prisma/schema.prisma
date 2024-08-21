@@ -15,7 +15,7 @@ datasource db {
 }
 
 model Admin {
-  id            String    @id @default(uuid()) @db.VarChar(36)
+  id            String    @id @default(uuid()) @db.VarChar(40)
   nama          String    @db.VarChar(30)
   email         String    @unique @db.VarChar(50)
   password      String    @db.VarChar(100)
@@ -33,35 +33,33 @@ enum status_seller {
 }
 
 model Seller {
-  id                       String         @id @default(uuid()) @db.VarChar(36)
-  nama                     String         @db.VarChar(30)
-  deskripsi                String?        @db.Text()
-  email                    String         @unique @db.VarChar(50)
-  password                 String         @db.VarChar(100)
-  provinsi                 String         @db.VarChar(30)
-  kota                     String         @db.VarChar(30)
-  kecamatan                String         @db.VarChar(30)
-  kelurahan                String         @db.VarChar(30)
-  kode_pos                 String         @db.VarChar(5)
-  alamat                   String         @db.VarChar(100)
-  no_hp                    String         @unique @db.VarChar(15)
-  ava_image_id             String?        @db.VarChar(100)
-  ava_image_url            String?        @db.VarChar(200)
-  link_map_alamat_toko     String?        @db.VarChar(100)
-  sample_image_product_id  String?        @db.VarChar(100)
-  sample_image_product_url String?        @db.VarChar(200)
-  status                   status_seller?
-  verified_at              DateTime?      @db.Timestamp(0)
-  refresh_token            String?        @db.VarChar(350)
-  created_at               DateTime       @default(now()) @db.Timestamp(0)
-  updated_at               DateTime       @default(now()) @db.Timestamp(0)
-  Products                 Product[]
+  id                   String         @id @default(uuid()) @db.VarChar(40)
+  nama                 String         @db.VarChar(30)
+  deskripsi            String?        @db.Text()
+  email                String         @unique @db.VarChar(50)
+  password             String         @db.VarChar(100)
+  provinsi             String         @db.VarChar(30)
+  kota                 String         @db.VarChar(30)
+  kecamatan            String         @db.VarChar(30)
+  kelurahan            String         @db.VarChar(30)
+  kode_pos             String         @db.VarChar(5)
+  alamat               String         @db.VarChar(100)
+  no_hp                String         @unique @db.VarChar(15)
+  ava_image_id         String?        @db.VarChar(100)
+  ava_image_url        String?        @db.VarChar(200)
+  link_map_alamat_toko String?        @db.VarChar(100)
+  status               status_seller?
+  verified_at          DateTime?      @db.Timestamp(0)
+  refresh_token        String?        @db.VarChar(350)
+  created_at           DateTime       @default(now()) @db.Timestamp(0)
+  updated_at           DateTime       @default(now()) @db.Timestamp(0)
+  Products             Product[]
 
   @@map("sellers")
 }
 
 model Customer {
-  id            String    @id @default(uuid()) @db.VarChar(36)
+  id            String    @id @default(uuid()) @db.VarChar(40)
   nama          String    @db.VarChar(30)
   email         String    @unique @db.VarChar(50)
   password      String    @db.VarChar(100)
@@ -85,7 +83,7 @@ model Customer {
 }
 
 model Category {
-  id         String    @id @default(uuid()) @db.VarChar(36)
+  id         String    @id @default(uuid()) @db.VarChar(40)
   nama       String    @unique @db.VarChar(30)
   created_at DateTime  @default(now()) @db.Timestamp(0)
   updated_at DateTime  @default(now()) @db.Timestamp(0)
@@ -95,7 +93,7 @@ model Category {
 }
 
 model Product {
-  id            String         @id @default(uuid()) @db.VarChar(36)
+  id            String         @id @default(uuid()) @db.VarChar(40)
   nama          String         @db.VarChar(30)
   deskripsi     String         @db.Text()
   harga         Int
@@ -103,28 +101,39 @@ model Product {
   image_url     String         @db.VarChar(200)
   created_at    DateTime       @default(now()) @db.Timestamp(0)
   updated_at    DateTime       @default(now()) @db.Timestamp(0)
-  category_id   String         @db.VarChar(36)
-  seller_id     String         @db.VarChar(36)
+  category_id   String         @db.VarChar(40)
+  seller_id     String         @db.VarChar(40)
   Category      Category       @relation(fields: [category_id], references: [id])
   Seller        Seller         @relation(fields: [seller_id], references: [id])
-  Carts         Cart[]
+  CartsItems    CartItem[]
   OrderProducts OrderProduct[]
 
   @@map("products")
 }
 
 model Cart {
-  id           String   @id @default(uuid()) @db.VarChar(36)
-  total_produk Int
-  total_harga  Int
-  customer_id  String   @db.VarChar(36)
-  product_id   String   @unique @db.VarChar(36)
-  created_at   DateTime @default(now()) @db.Timestamp(0)
-  updated_at   DateTime @default(now()) @db.Timestamp(0)
-  Product      Product  @relation(fields: [product_id], references: [id])
-  Customer     Customer @relation(fields: [customer_id], references: [id])
+  id          String     @id @default(uuid()) @db.VarChar(40)
+  customer_id String     @db.VarChar(40)
+  seller_id   String     @db.VarChar(40)
+  created_at  DateTime   @default(now()) @db.Timestamp(0)
+  updated_at  DateTime   @updatedAt @db.Timestamp(0)
+  Customer    Customer   @relation(fields: [customer_id], references: [id])
+  CartItems   CartItem[]
 
   @@map("carts")
+}
+
+model CartItem {
+  id           Int     @id @default(autoincrement())
+  total_produk Int
+  total_harga  Int
+  cart_id      String  @db.VarChar(40)
+  product_id   String  @db.VarChar(40)
+  Cart         Cart    @relation(fields: [cart_id], references: [id])
+  Product      Product @relation(fields: [product_id], references: [id])
+
+  @@unique([cart_id, product_id])
+  @@map("cart_items")
 }
 
 enum order_status {
@@ -144,7 +153,7 @@ enum transactions_status {
 
 model Order {
   id                String               @id @db.VarChar(40)
-  customer_id       String               @db.VarChar(36)
+  customer_id       String               @db.VarChar(40)
   total_produk      Int
   total_harga       Int
   status_order      order_status         @default(PENDING)
@@ -162,9 +171,9 @@ model Order {
 }
 
 model OrderProduct {
-  id         String  @id @default(uuid()) @db.VarChar(36)
+  id         Int     @id @default(autoincrement())
   order_id   String  @db.VarChar(40)
-  product_id String  @db.VarChar(36)
+  product_id String  @db.VarChar(40)
   quantity   Int
   Order      Order   @relation(fields: [order_id], references: [id])
   Product    Product @relation(fields: [product_id], references: [id])

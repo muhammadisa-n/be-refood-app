@@ -1,69 +1,76 @@
-const express = require('express');
+const express = require("express");
 const {
-    deleteCart,
-    createCart,
-    getAllCart,
-    createOrder,
-    getAllOrder,
-    getDetailOrder,
-    updateOrder,
-    cancelOrder,
-    updateStatusOrder,
-    getAllProductRecomendation,
-} = require('../controller/customer-controller.js');
-const { AuthMiddleware } = require('../middleware/auth-middleware.js');
-const { isCustomer } = require('../middleware/role-middleware.js');
+  deleteCartItem,
+  createCart,
+  getAllCart,
+  createOrder,
+  getAllOrder,
+  getDetailOrder,
+  updateOrder,
+  cancelOrder,
+  updateStatusOrder,
+  getAllProductRecomendation,
+  updateCartTotalProduk,
+} = require("../controller/customer-controller.js");
+const { AuthMiddleware } = require("../middleware/auth-middleware.js");
+const { isCustomer } = require("../middleware/role-middleware.js");
 
 const customerRoutes = express.Router();
 
 // Carts
-customerRoutes.get('/customer/carts', AuthMiddleware, isCustomer, getAllCart);
-customerRoutes.post('/customer/carts', AuthMiddleware, isCustomer, createCart);
+customerRoutes.get("/customer/carts", AuthMiddleware, isCustomer, getAllCart);
+customerRoutes.post("/customer/carts", AuthMiddleware, isCustomer, createCart);
+customerRoutes.patch(
+  "/customer/carts/:id/quantity",
+  AuthMiddleware,
+  isCustomer,
+  updateCartTotalProduk
+);
 customerRoutes.delete(
-    '/customer/carts/:id',
-    AuthMiddleware,
-    isCustomer,
-    deleteCart
+  "/customer/carts/:productId",
+  AuthMiddleware,
+  isCustomer,
+  deleteCartItem
 );
 
 // Orders
-customerRoutes.get('/customer/orders', AuthMiddleware, isCustomer, getAllOrder);
+customerRoutes.get("/customer/orders", AuthMiddleware, isCustomer, getAllOrder);
 customerRoutes.get(
-    '/customer/orders/:id',
-    AuthMiddleware,
-    isCustomer,
-    getDetailOrder
+  "/customer/orders/:id",
+  AuthMiddleware,
+  isCustomer,
+  getDetailOrder
 );
 customerRoutes.put(
-    '/customer/orders/:id',
-    AuthMiddleware,
-    isCustomer,
-    updateOrder
+  "/customer/orders/:id",
+  AuthMiddleware,
+  isCustomer,
+  updateOrder
 );
 customerRoutes.patch(
-    '/customer/orders/:id/cancel',
-    AuthMiddleware,
-    isCustomer,
-    cancelOrder
+  "/customer/orders/:id/cancel",
+  AuthMiddleware,
+  isCustomer,
+  cancelOrder
 );
 customerRoutes.patch(
-    '/customer/orders/:id/status-order',
-    AuthMiddleware,
-    isCustomer,
-    updateStatusOrder
+  "/customer/orders/:id/status-order",
+  AuthMiddleware,
+  isCustomer,
+  updateStatusOrder
 );
 customerRoutes.post(
-    '/customer/orders',
-    AuthMiddleware,
-    isCustomer,
-    createOrder
+  "/customer/orders",
+  AuthMiddleware,
+  isCustomer,
+  createOrder
 );
 
 // customer products
 customerRoutes.get(
-    '/customer/products',
-    AuthMiddleware,
-    isCustomer,
-    getAllProductRecomendation
+  "/customer/products",
+  AuthMiddleware,
+  isCustomer,
+  getAllProductRecomendation
 );
 module.exports = customerRoutes;
