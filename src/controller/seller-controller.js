@@ -64,13 +64,13 @@ module.exports = {
     const skip = (page - 1) * take;
     const filters = [];
     filters.push({
-      OrderProducts: {
+      OrderItems: {
         some: { Product: { seller_id: req.userData.user_id } },
       },
     });
     if (req.query.search) {
       filters.push({
-        OrderProducts: {
+        OrderItems: {
           some: { Product: { nama: req.query.search } },
         },
       });
@@ -82,7 +82,13 @@ module.exports = {
         skip: skip,
         include: {
           Customer: true,
-          OrderProducts: { select: { Product: true } },
+          OrderItems: {
+            select: {
+              Product: true,
+              sub_total_harga: true,
+              sub_total_produk: true,
+            },
+          },
         },
       });
       const totalOrder = await prisma.order.count({
@@ -135,8 +141,12 @@ module.exports = {
           id: req.params.id,
         },
         include: {
-          OrderProducts: {
-            select: { Product: true, quantity: true },
+          OrderItems: {
+            select: {
+              Product: true,
+              sub_total_harga: true,
+              sub_total_produk: true,
+            },
           },
           Customer: { select: { nama: true, no_hp: true } },
         },
@@ -310,7 +320,7 @@ module.exports = {
       imageUrl = result.secure_url;
     }
     try {
-      const { deskripsi, harga } = validate.value;
+      const { deskripsi, harga, diskon } = validate.value;
       await prisma.product.update({
         where: { id: req.params.id },
         data: {
@@ -319,6 +329,7 @@ module.exports = {
           image_id: imageId,
           image_url: imageUrl,
           updated_at: new Date(),
+          diskon: diskon,
         },
       });
       return res.status(200).json({
@@ -359,7 +370,6 @@ module.exports = {
     }
     if (fileSize > 5 * 1024 * 1024) {
       fs.unlinkSync(imageFile);
-      console.log(imageFile);
       return res.status(422).json({
         message: "File Terlalu Besar Maksimal 5MB",
         status_code: 422,
@@ -368,9 +378,9 @@ module.exports = {
     const seller = await prisma.seller.findFirst({
       where: { id: req.userData.user_id },
     });
-    if (seller.sample_image_product_id !== null) {
+    if (seller.ava_image_id !== null) {
       try {
-        await cloudinary.uploader.destroy(seller.sample_image_product_id);
+        await cloudinary.uploader.destroy(seller.ava_image_id);
       } catch (error) {
         return res
           .status(500)
@@ -381,7 +391,7 @@ module.exports = {
       const result = await cloudinary.uploader.upload(imageFile, {
         folder: `products/images/${req.userData.user_id}/sample-products`,
         unique_filename: true,
-        tags: `sample-product-image`,
+        tags: `foto-warung-sellerimage`,
       });
       fs.unlinkSync(imageFile);
 
@@ -406,7 +416,7 @@ module.exports = {
     try {
       const totalOrder = await prisma.order.count({
         where: {
-          OrderProducts: {
+          OrderItems: {
             some: { Product: { seller_id: req.userData.user_id } },
           },
         },
@@ -464,7 +474,7 @@ module.exports = {
       const orders = await prisma.order.findMany({
         where: {
           status_order: "SUKSES",
-          OrderProducts: {
+          OrderItems: {
             some: {
               Product: {
                 seller_id: sellerId,
@@ -473,13 +483,12 @@ module.exports = {
           },
         },
         select: {
-          total_harga: true,
+          total_pembayaran: true,
         },
       });
 
-      // Menghitung total pendapatan dari order yang berkaitan dengan seller yang login
       const totalPendapatan = orders.reduce((total, order) => {
-        return total + order.total_harga;
+        return total + order.total_pembayaran;
       }, 0);
 
       return res.status(200).json({
@@ -494,64 +503,224 @@ module.exports = {
       });
     }
   },
-  getPendapatanPerBulan: async (sellerId) => {
-    const orders = await prismaClient.order.findMany({
-      where: {
-        status_order: "SUKSES",
-        OrderProducts: {
-          some: {
-            Product: {
-              seller_id: sellerId,
+
+  reportPenjualan: async (req, res) => {
+    const { tanggalMulai, tanggalSelesai } = req.query;
+    let start, end;
+    const filters = [];
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth() + 1;
+    if (tanggalMulai && tanggalSelesai) {
+      const startDate = new Date(`${tanggalMulai}T00:00:00Z`);
+      const endDate = new Date(`${tanggalSelesai}T23:59:59Z`);
+      filters.push({
+        waktu_transaksi: {
+          gte: startDate,
+          lte: endDate,
+        },
+      });
+    }
+    try {
+      const orders = await prisma.order.findMany({
+        where: {
+          AND: filters,
+          status_order: "SUKSES",
+          status_transaksi: "PAID",
+          OrderItems: {
+            some: {
+              Product: { seller_id: req.userData.user_id },
             },
           },
         },
-        waktu_transaksi: {
-          not: null,
+        orderBy: { waktu_transaksi: "asc" },
+        include: {
+          Customer: true,
+          OrderItems: {
+            include: {
+              Product: true,
+            },
+          },
         },
-      },
-      select: {
-        total_harga: true,
-        waktu_transaksi: true,
-      },
-    });
-
-    // Menghitung total pendapatan per bulan
-    const pendapatanPerBulan = orders.reduce((acc, order) => {
-      const month = new Date(order.waktu_transaksi).getMonth() + 1;
-      if (!acc[month]) {
-        acc[month] = 0;
-      }
-      acc[month] += order.total_harga;
-      return acc;
-    }, {});
-
-    // Format data menjadi array objek
-    return Object.keys(pendapatanPerBulan).map((month) => ({
-      month: parseInt(month, 10),
-      total_pendapatan: pendapatanPerBulan[month],
-    }));
-  },
-  countPendapatanPerBulan: async (req, res) => {
-    try {
-      const sellerId = req.userData.user_id; // Misalkan user_id diambil dari middleware autentikasi
-
-      if (!sellerId) {
-        return res.status(400).json({
-          message: "Seller ID is missing",
-          status_code: 400,
-        });
-      }
-
-      const dataPendapatan = await this.getPendapatanPerBulan(sellerId);
-
-      res.status(200).json({
+      });
+      const totalSemuaPenjualan = await prisma.order.count({
+        where: {
+          status_order: "SUKSES",
+          status_transaksi: "PAID",
+          OrderItems: {
+            some: {
+              Product: { seller_id: req.userData.user_id },
+            },
+          },
+        },
+      });
+      const totalPenjualanHariIni = await prisma.order.count({
+        where: {
+          waktu_transaksi: {
+            gte: new Date(),
+            lt: new Date(),
+          },
+        },
+      });
+      const totalPenjualanBulanIni = await prisma.order.count({
+        where: {
+          status_order: "SUKSES",
+          status_transaksi: "PAID",
+          waktu_transaksi: {
+            gte: new Date(currentYear, currentMonth - 1, 1),
+            lt: new Date(currentYear, currentMonth, 1),
+          },
+          OrderItems: {
+            some: {
+              Product: { seller_id: req.userData.user_id },
+            },
+          },
+        },
+      });
+      const totalPenjualanTahunIni = await prisma.order.count({
+        where: {
+          status_order: "SUKSES",
+          status_transaksi: "PAID",
+          waktu_transaksi: {
+            gte: new Date(currentYear, 0, 1),
+            lt: new Date(currentYear + 1, 0, 1),
+          },
+          OrderItems: {
+            some: {
+              Product: { seller_id: req.userData.user_id },
+            },
+          },
+        },
+      });
+      return res.status(200).json({
         message: "Sukses",
-        pendapatan_per_bulan: dataPendapatan,
+        dataPenjualan: orders,
+        totalSemuaPenjualan: totalSemuaPenjualan,
+        totalPenjualanHariIni: totalPenjualanHariIni,
+        totalPenjualanBulanIni: totalPenjualanBulanIni,
+        totalPenjualanTahunIni: totalPenjualanTahunIni,
         status_code: 200,
       });
     } catch (error) {
-      res.status(500).json({
-        message: error.message,
+      return res.status(500).json({
+        message: `${error.message}`,
+        status_code: 500,
+      });
+    }
+  },
+  reportPendapatan: async (req, res) => {
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth() + 1;
+    const { tanggalMulai, tanggalSelesai } = req.query;
+    let filters = [];
+    if (tanggalMulai && tanggalSelesai) {
+      const startDate = new Date(`${tanggalMulai}T00:00:00Z`);
+      const endDate = new Date(`${tanggalSelesai}T23:59:59Z`);
+      filters.push({
+        waktu_transaksi: {
+          gte: startDate,
+          lte: endDate,
+        },
+      });
+    }
+    try {
+      const dataPendapatan = await prisma.order.groupBy({
+        by: ["waktu_transaksi"],
+        _sum: {
+          total_pembayaran: true,
+        },
+        where: {
+          AND: filters,
+          status_transaksi: "PAID",
+          status_order: "SUKSES",
+          OrderItems: {
+            some: {
+              Product: { seller_id: req.userData.user_id },
+            },
+          },
+        },
+        orderBy: { waktu_transaksi: "asc" },
+      });
+      const dataSemuaPendapatan = await prisma.order.groupBy({
+        by: ["waktu_transaksi"],
+        _sum: {
+          total_pembayaran: true,
+        },
+        where: {
+          status_transaksi: "PAID",
+          status_order: "SUKSES",
+          OrderItems: {
+            some: {
+              Product: { seller_id: req.userData.user_id },
+            },
+          },
+        },
+        orderBy: { waktu_transaksi: "asc" },
+      });
+      const dataPendapatanHariIni = await prisma.order.groupBy({
+        by: ["waktu_transaksi"],
+        _sum: {
+          total_pembayaran: true,
+        },
+        where: {
+          waktu_transaksi: {
+            gte: new Date(),
+            lt: new Date(),
+          },
+          status_transaksi: "PAID",
+          status_order: "SUKSES",
+          OrderItems: {
+            some: {
+              Product: { seller_id: req.userData.user_id },
+            },
+          },
+        },
+        orderBy: { waktu_transaksi: "asc" },
+      });
+      const dataPendapatanBulanIni = await prisma.order.groupBy({
+        by: ["waktu_transaksi"],
+        _sum: {
+          total_pembayaran: true,
+        },
+        where: {
+          waktu_transaksi: {
+            gte: new Date(currentYear, currentMonth - 1, 1),
+            lt: new Date(currentYear, currentMonth, 1),
+          },
+          status_transaksi: "PAID",
+          status_order: "SUKSES",
+          OrderItems: {
+            some: {
+              Product: { seller_id: req.userData.user_id },
+            },
+          },
+        },
+        orderBy: { waktu_transaksi: "asc" },
+      });
+      const totalSemuaPendapatan = dataSemuaPendapatan.reduce(
+        (sum, item) => sum + (item._sum.total_pembayaran || 0),
+        0
+      );
+      const totalSemuaPendapatanHariIni = dataPendapatanHariIni.reduce(
+        (sum, item) => sum + (item._sum.total_pembayaran || 0),
+        0
+      );
+      const totalSemuaPendapatanBulanIni = dataPendapatanBulanIni.reduce(
+        (sum, item) => sum + (item._sum.total_pembayaran || 0),
+        0
+      );
+      return res.status(200).json({
+        message: "Sukses",
+        dataPendapatan: dataPendapatan,
+        dataPendapatanHariIni: dataPendapatanHariIni,
+        dataPendapatanBulanIni: dataPendapatanBulanIni,
+        totalSemuaPendapatan: totalSemuaPendapatan,
+        totalPendapatanHariIni: totalSemuaPendapatanHariIni,
+        totalPendapatanBulanIni: totalSemuaPendapatanBulanIni,
+        status_code: 200,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        message: `${error.message}`,
         status_code: 500,
       });
     }

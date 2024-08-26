@@ -93,20 +93,21 @@ model Category {
 }
 
 model Product {
-  id            String         @id @default(uuid()) @db.VarChar(40)
-  nama          String         @db.VarChar(30)
-  deskripsi     String         @db.Text()
-  harga         Int
-  image_id      String         @db.VarChar(100)
-  image_url     String         @db.VarChar(200)
-  created_at    DateTime       @default(now()) @db.Timestamp(0)
-  updated_at    DateTime       @default(now()) @db.Timestamp(0)
-  category_id   String         @db.VarChar(40)
-  seller_id     String         @db.VarChar(40)
-  Category      Category       @relation(fields: [category_id], references: [id])
-  Seller        Seller         @relation(fields: [seller_id], references: [id])
-  CartsItems    CartItem[]
-  OrderProducts OrderProduct[]
+  id          String      @id @default(uuid()) @db.VarChar(40)
+  nama        String      @db.VarChar(30)
+  deskripsi   String      @db.Text()
+  harga       Int
+  diskon      Int?        @default(0)
+  image_id    String      @db.VarChar(100)
+  image_url   String      @db.VarChar(200)
+  created_at  DateTime    @default(now()) @db.Timestamp(0)
+  updated_at  DateTime    @default(now()) @db.Timestamp(0)
+  category_id String      @db.VarChar(40)
+  seller_id   String      @db.VarChar(40)
+  Category    Category    @relation(fields: [category_id], references: [id])
+  Seller      Seller      @relation(fields: [seller_id], references: [id])
+  CartsItems  CartItem[]
+  OrderItems  OrderItem[]
 
   @@map("products")
 }
@@ -154,29 +155,56 @@ enum transactions_status {
 model Order {
   id                String               @id @db.VarChar(40)
   customer_id       String               @db.VarChar(40)
+  total_pembayaran  Int
   total_produk      Int
-  total_harga       Int
   status_order      order_status         @default(PENDING)
   status_transaksi  transactions_status? @default(PENDING)
   token_transaction String?              @db.VarChar(36)
   tipe_pembayaran   String?              @db.VarChar(20)
   jenis_layanan     String?              @db.VarChar(20)
+  no_meja           Int?
+  waktu_makan       DateTime?            @db.Time()
   waktu_transaksi   DateTime?            @db.Timestamp(0)
   created_at        DateTime             @default(now()) @db.Timestamp(0)
   updated_at        DateTime             @default(now()) @db.Timestamp(0)
   Customer          Customer             @relation(fields: [customer_id], references: [id])
-  OrderProducts     OrderProduct[]
+  OrderItems        OrderItem[]
 
   @@map("orders")
 }
 
-model OrderProduct {
-  id         Int     @id @default(autoincrement())
-  order_id   String  @db.VarChar(40)
-  product_id String  @db.VarChar(40)
-  quantity   Int
-  Order      Order   @relation(fields: [order_id], references: [id])
-  Product    Product @relation(fields: [product_id], references: [id])
+model OrderItem {
+  id               Int     @id @default(autoincrement())
+  order_id         String  @db.VarChar(40)
+  product_id       String  @db.VarChar(40)
+  sub_total_produk Int
+  sub_total_harga  Int
+  Order            Order   @relation(fields: [order_id], references: [id])
+  Product          Product @relation(fields: [product_id], references: [id])
 
-  @@map("order_products")
+  @@map("order_items")
+}
+
+enum status_Notification {
+  READ
+  UNREAD
+}
+
+enum type_Notification {
+  All
+  PROMO
+  FOR_YOU
+}
+
+model Notification {
+  id         Int                 @id @default(autoincrement())
+  title      String              @db.VarChar(30)
+  message    String              @db.Text
+  user_id    String?             @db.VarChar(40)
+  status     status_Notification @default(UNREAD)
+  type       type_Notification
+  created_at DateTime            @default(now()) @db.Timestamp(0)
+  updated_at DateTime            @default(now()) @db.Timestamp(0)
+
+  @@map("notifications")
 }

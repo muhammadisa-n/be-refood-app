@@ -46,6 +46,49 @@ module.exports = {
         .json({ message: `${error.message}`, status_code: 500 });
     }
   },
+  getAllProductBySellerId: async (req, res) => {
+    const page = Number(req.query.page) || 1;
+    const take = Number(req.query.take) || 10;
+    const skip = (page - 1) * take;
+    const filters = [];
+    if (req.query.search) {
+      filters.push({
+        nama: {
+          contains: req.query.search,
+        },
+      });
+    }
+    try {
+      const products = await prisma.product.findMany({
+        where: { AND: filters, seller_id: req.params.sellerId },
+        take: take,
+        skip: skip,
+        orderBy: { created_at: "desc" },
+        include: {
+          Category: { select: { nama: true } },
+        },
+      });
+      const totalProduct = await prisma.product.count({
+        where: {
+          AND: filters,
+        },
+      });
+      res.status(200).json({
+        message: "Sukses",
+        products,
+        total_product: totalProduct,
+        paging: {
+          current_page: page,
+          total_page: Math.ceil(totalProduct / take),
+        },
+        status_code: 200,
+      });
+    } catch (error) {
+      return res
+        .status(500)
+        .json({ message: `${error.message}`, status_code: 500 });
+    }
+  },
   getDetailProduct: async (req, res) => {
     const product = await prisma.product.findUnique({
       where: { id: req.params.id },

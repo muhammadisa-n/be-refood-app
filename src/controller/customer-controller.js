@@ -8,7 +8,6 @@ const mustache = require("mustache");
 const fs = require("fs");
 const path = require("path");
 module.exports = {
-  // Cart
   getAllCart: async (req, res) => {
     try {
       const carts = await prisma.cart.findMany({
@@ -144,11 +143,15 @@ module.exports = {
       if (!cartItem) {
         return res.status(404).json({ error: "Data Keranjang Tidak Ada" });
       }
+      const product = cartItem.Product;
+      const hargaSetelahDiskon = product.diskon
+        ? (product.harga * (100 - product.diskon)) / 100
+        : product.harga;
       await prisma.cartItem.update({
         where: { id: Number(id) },
         data: {
           total_produk: total_produk,
-          total_harga: total_produk * cartItem.Product.harga,
+          total_harga: total_produk * hargaSetelahDiskon,
         },
       });
 
@@ -216,8 +219,12 @@ module.exports = {
         where: { customer_id: req.userData.user_id },
         orderBy: { created_at: "desc" },
         include: {
-          OrderProducts: {
-            select: { Product: true, quantity: true },
+          OrderItems: {
+            select: {
+              Product: true,
+              sub_total_harga: true,
+              sub_total_produk: true,
+            },
           },
         },
       });
@@ -238,8 +245,12 @@ module.exports = {
           customer_id: req.userData.user_id,
         },
         include: {
-          OrderProducts: {
-            select: { Product: true, quantity: true },
+          OrderItems: {
+            select: {
+              Product: true,
+              sub_total_produk: true,
+              sub_total_harga: true,
+            },
           },
           Customer: { select: { nama: true, no_hp: true } },
         },
@@ -262,7 +273,7 @@ module.exports = {
   },
   createOrder: async (req, res) => {
     const validate = creatOrderValidation.validate(req.body, {
-      allowUnknown: false,
+      allowUnknown: true,
     });
     if (validate.error) {
       let errors = validate.error.message;
@@ -287,24 +298,13 @@ module.exports = {
           status_code: 404,
         });
       }
-      const sellerId = products[0].Seller.id;
-      const allSameSeller = products.every(
-        (product) => product.Seller.id === sellerId
-      );
-
-      if (!allSameSeller) {
-        return res.status(400).json({
-          message: "Semua produk harus berasal dari penjual yang sama",
-          status_code: 400,
-        });
-      }
 
       const customer = await prisma.customer.findUnique({
         where: {
           id: req.userData.user_id,
         },
       });
-
+      const sellerId = products[0].Seller.id;
       const seller = await prisma.seller.findFirst({
         where: {
           id: sellerId,
@@ -312,14 +312,17 @@ module.exports = {
       });
       const orderId = `ORD-${uuid()}`;
 
-      const { total_harga, products: orderProducts } = validate.value;
+      const { total_pembayaran, products: orderItems } = validate.value;
 
-      const itemDetails = orderProducts.map((orderProduct) => {
-        const product = products.find((p) => p.id === orderProduct.product_id);
+      const itemDetails = orderItems.map((orderItem) => {
+        const product = products.find((p) => p.id === orderItem.product_id);
+        const diskonHarga = product.diskon
+          ? (product.harga * (100 - product.diskon)) / 100
+          : product.harga;
         return {
           id: product.id,
-          price: product.harga,
-          quantity: orderProduct.quantity,
+          price: diskonHarga,
+          quantity: orderItem.sub_total_produk,
           name: product.nama,
           category: product.Category.nama,
           merchant_name: product.Seller.nama,
@@ -329,7 +332,7 @@ module.exports = {
       const parameter = {
         transaction_details: {
           order_id: `${orderId}`,
-          gross_amount: total_harga,
+          gross_amount: total_pembayaran,
         },
         item_details: itemDetails,
         customer_details: {
@@ -338,6 +341,7 @@ module.exports = {
           phone: customer.no_hp,
         },
       };
+      console.log(parameter);
       snapMidtrans
         .createTransaction(parameter)
         .then(async (transactionData) => {
@@ -345,26 +349,33 @@ module.exports = {
             data: {
               id: orderId,
               customer_id: req.userData.user_id,
-              total_produk: orderProducts.reduce(
-                (total, p) => total + p.quantity,
+              total_produk: orderItems.reduce(
+                (total, p) => total + p.sub_total_produk,
                 0
               ),
-
-              total_harga: total_harga,
+              waktu_transaksi: new Date(),
+              waktu_makan:
+                req.body.waktu_makan === null
+                  ? null
+                  : new Date(`1970-01-01T${req.body.waktu_makan}Z`),
+              jenis_layanan: req.body.jenis_layanan,
+              no_meja: Number(req.body.no_meja) || null,
+              total_pembayaran: total_pembayaran,
               token_transaction: transactionData.token,
             },
           });
-          // Membuat entri OrderProduct untuk setiap produk
-          const orderProductPromises = orderProducts.map((orderProduct) => {
-            return prisma.orderProduct.create({
+          // Membuat entri orderItem untuk setiap produk
+          const orderItemPromises = orderItems.map((orderItem) => {
+            return prisma.orderItem.create({
               data: {
                 order_id: orderId,
-                product_id: orderProduct.product_id,
-                quantity: orderProduct.quantity,
+                product_id: orderItem.product_id,
+                sub_total_produk: orderItem.sub_total_produk,
+                sub_total_harga: orderItem.sub_total_harga,
               },
             });
           });
-          await Promise.all(orderProductPromises);
+          await Promise.all(orderItemPromises);
 
           const url = `${process.env.CLIENT_URL}/my-dashboard/seller/orders/detail/${dataOrder.id}`;
           const template = fs.readFileSync(
@@ -426,7 +437,6 @@ module.exports = {
       waktu_transaksi,
       status_order,
       token_transaction,
-      jenis_layanan,
     } = req.body;
 
     try {
@@ -437,7 +447,6 @@ module.exports = {
           tipe_pembayaran: tipe_pembayaran,
           status_transaksi: status_transaksi,
           waktu_transaksi: waktu_transaksi,
-          jenis_layanan: jenis_layanan,
           token_transaction: token_transaction || order.token_transaction,
           updated_at: new Date(),
         },
