@@ -263,12 +263,46 @@ module.exports = {
       });
     }
 
+    if (req.query.provinsi) {
+      filters.push({
+        provinsi: {
+          contains: req.query.provinsi,
+        },
+      });
+    }
+
+    if (req.query.kota) {
+      filters.push({
+        kota: {
+          contains: req.query.kota,
+        },
+      });
+    }
+
+    if (req.query.kecamatan) {
+      filters.push({
+        kecamatan: {
+          contains: req.query.kecamatan,
+        },
+      });
+    }
+
+    if (req.query.kelurahan) {
+      filters.push({
+        kelurahan: {
+          contains: req.query.kelurahan,
+        },
+      });
+    }
     try {
       const sellers = await prisma.seller.findMany({
         where: { AND: filters },
         take: take,
         skip: skip,
         orderBy: { updated_at: "desc" },
+        include: {
+          Products: true,
+        },
       });
       const totalSeller = await prisma.seller.count({
         where: {
@@ -294,6 +328,9 @@ module.exports = {
   getDetailSeller: async (req, res) => {
     const seller = await prisma.seller.findUnique({
       where: { id: req.params.id },
+      include: {
+        Products: true,
+      },
     });
 
     if (!seller) {
