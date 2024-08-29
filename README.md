@@ -4,6 +4,10 @@
 
 [Frontend](https://github.com/muhammadisa226/fe-tugas-akhir)
 
+### Recommendation Repository
+
+[Recommendation](https://github.com/muhammadisa226/reccomendation-tugas-akhir)
+
 # Usage
 
 ### Clone Repo
