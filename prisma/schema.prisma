@@ -1,0 +1,186 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-1.1.x"]
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  id            String    @id @default(uuid()) @db.VarChar(40)
+  nama          String    @db.VarChar(30)
+  email         String    @unique @db.VarChar(50)
+  password      String    @db.VarChar(100)
+  ava_image_id  String?   @db.VarChar(100)
+  ava_image_url String?   @db.VarChar(200)
+  refresh_token String?   @db.VarChar(350)
+  verified_at   DateTime? @db.Timestamp(0)
+
+  @@map("admin")
+}
+
+enum status_seller {
+  Diterima
+  Ditolak
+}
+
+model Seller {
+  id                   String         @id @default(uuid()) @db.VarChar(40)
+  nama                 String         @db.VarChar(30)
+  deskripsi            String?        @db.Text()
+  email                String         @unique @db.VarChar(50)
+  password             String         @db.VarChar(100)
+  provinsi             String         @db.VarChar(30)
+  kota                 String         @db.VarChar(30)
+  kecamatan            String         @db.VarChar(30)
+  kelurahan            String         @db.VarChar(30)
+  kode_pos             String         @db.VarChar(5)
+  alamat               String         @db.VarChar(100)
+  no_hp                String         @unique @db.VarChar(15)
+  ava_image_id         String?        @db.VarChar(100)
+  ava_image_url        String?        @db.VarChar(200)
+  link_map_alamat_toko String?        @db.VarChar(100)
+  status               status_seller?
+  verified_at          DateTime?      @db.Timestamp(0)
+  refresh_token        String?        @db.VarChar(350)
+  created_at           DateTime       @default(now()) @db.Timestamp(0)
+  updated_at           DateTime       @default(now()) @db.Timestamp(0)
+  Products             Product[]
+
+  @@map("sellers")
+}
+
+model Customer {
+  id            String    @id @default(uuid()) @db.VarChar(40)
+  nama          String    @db.VarChar(30)
+  email         String    @unique @db.VarChar(50)
+  password      String    @db.VarChar(100)
+  provinsi      String    @db.VarChar(30)
+  kota          String    @db.VarChar(30)
+  kecamatan     String    @db.VarChar(30)
+  kelurahan     String    @db.VarChar(30)
+  kode_pos      String    @db.VarChar(5)
+  alamat        String    @db.VarChar(100)
+  no_hp         String    @unique @db.VarChar(15)
+  ava_image_id  String?   @db.VarChar(100)
+  ava_image_url String?   @db.VarChar(200)
+  verified_at   DateTime? @db.Timestamp(0)
+  refresh_token String?   @db.VarChar(350)
+  created_at    DateTime? @default(now()) @db.Timestamp(0)
+  updated_at    DateTime? @default(now()) @db.Timestamp(0)
+  Carts         Cart[]
+  Orders        Order[]
+
+  @@map("customers")
+}
+
+model Category {
+  id         String    @id @default(uuid()) @db.VarChar(40)
+  nama       String    @unique @db.VarChar(30)
+  created_at DateTime  @default(now()) @db.Timestamp(0)
+  updated_at DateTime  @default(now()) @db.Timestamp(0)
+  Products   Product[]
+
+  @@map("categories")
+}
+
+model Product {
+  id          String      @id @default(uuid()) @db.VarChar(40)
+  nama        String      @db.VarChar(30)
+  deskripsi   String      @db.Text()
+  harga       Int
+  diskon      Int?        @default(0)
+  image_id    String      @db.VarChar(100)
+  image_url   String      @db.VarChar(200)
+  created_at  DateTime    @default(now()) @db.Timestamp(0)
+  updated_at  DateTime    @default(now()) @db.Timestamp(0)
+  category_id String      @db.VarChar(40)
+  seller_id   String      @db.VarChar(40)
+  Category    Category    @relation(fields: [category_id], references: [id])
+  Seller      Seller      @relation(fields: [seller_id], references: [id])
+  CartsItems  CartItem[]
+  OrderItems  OrderItem[]
+
+  @@map("products")
+}
+
+model Cart {
+  id          String     @id @default(uuid()) @db.VarChar(40)
+  customer_id String     @db.VarChar(40)
+  seller_id   String     @db.VarChar(40)
+  created_at  DateTime   @default(now()) @db.Timestamp(0)
+  updated_at  DateTime   @updatedAt @db.Timestamp(0)
+  Customer    Customer   @relation(fields: [customer_id], references: [id])
+  CartItems   CartItem[]
+
+  @@map("carts")
+}
+
+model CartItem {
+  id           Int     @id @default(autoincrement())
+  total_produk Int
+  total_harga  Int
+  cart_id      String  @db.VarChar(40)
+  product_id   String  @db.VarChar(40)
+  Cart         Cart    @relation(fields: [cart_id], references: [id])
+  Product      Product @relation(fields: [product_id], references: [id])
+
+  @@unique([cart_id, product_id])
+  @@map("cart_items")
+}
+
+enum order_status {
+  SUKSES
+  SELESAI
+  PROSES
+  PENDING
+  CANCEL
+}
+
+enum transactions_status {
+  PENDING
+  PAID
+  CANCEL
+  FAIL
+}
+
+model Order {
+  id                String               @id @db.VarChar(40)
+  customer_id       String               @db.VarChar(40)
+  total_pembayaran  Int
+  total_produk      Int
+  status_order      order_status         @default(PENDING)
+  status_transaksi  transactions_status? @default(PENDING)
+  token_transaction String?              @db.VarChar(36)
+  tipe_pembayaran   String?              @db.VarChar(20)
+  jenis_layanan     String?              @db.VarChar(20)
+  no_meja           Int?
+  waktu_makan       DateTime?            @db.Time()
+  waktu_transaksi   DateTime?            @db.Timestamp(0)
+  created_at        DateTime             @default(now()) @db.Timestamp(0)
+  updated_at        DateTime             @default(now()) @db.Timestamp(0)
+  Customer          Customer             @relation(fields: [customer_id], references: [id])
+  OrderItems        OrderItem[]
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id               Int     @id @default(autoincrement())
+  order_id         String  @db.VarChar(40)
+  product_id       String  @db.VarChar(40)
+  sub_total_produk Int
+  sub_total_harga  Int
+  Order            Order   @relation(fields: [order_id], references: [id])
+  Product          Product @relation(fields: [product_id], references: [id])
+
+  @@map("order_items")
+}

@@ -1,21 +1,57 @@
 {
-  "name": "backend-refood-app",
-  "version": "1.0.0",
-  "description": "bakend for Refood-app",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/muhammadisa226/be-refood-app.git"
-  },
-  "keywords": [
-    "backend",
-    "refood",
-    "app"
-  ],
-  "author": "Muhammad Isa",
-  "license": "ISC",
-  "homepage": "https://github.com/muhammadisa226/be-refood-app#readme"
+    "name": "backend-refood-app",
+    "version": "1.0.0",
+    "description": "bakend for Refood-app",
+    "main": "src/index.js",
+    "scripts": {
+        "start": "node src/index.js",
+        "dev": "nodemon src/index.js",
+        "initdb": "npx prisma init",
+        "migrate-dev": "npx prisma migrate dev",
+        "migrate-deploy": "npx prisma db push",
+        "create-migrate": "npx prisma migrate dev --create-only",
+        "generate": "npx prisma generate",
+        "test": ""
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/muhammadisa226/be-refood-app.git"
+    },
+    "keywords": [
+        "backend",
+        "refood",
+        "app"
+    ],
+    "author": "Muhammad Isa",
+    "license": "ISC",
+    "homepage": "https://github.com/muhammadisa226/be-refood-app#readme",
+    "dependencies": {
+        "@prisma/client": "^5.15.1",
+        "axios": "^1.7.2",
+        "bcryptjs": "^2.4.3",
+        "cloudinary": "^2.2.0",
+        "cookie-parser": "^1.4.6",
+        "cors": "^2.8.5",
+        "dotenv": "^16.4.5",
+        "express": "^4.19.2",
+        "express-fileupload": "^1.5.0",
+        "joi": "^17.12.2",
+        "jsonwebtoken": "^9.0.2",
+        "midtrans-client": "^1.3.1",
+        "ml-cart": "^2.1.1",
+        "moment-timezone": "^0.5.45",
+        "morgan": "^1.10.0",
+        "mustache": "^4.2.0",
+        "nodemailer": "^6.9.13",
+        "uuid": "^10.0.0"
+    },
+    "devDependencies": {
+        "@types/bcrypt": "^5.0.2",
+        "@types/express": "^4.17.21",
+        "@types/mustache": "^4.2.5",
+        "@types/uuid": "^10.0.0",
+        "nodemon": "^3.1.0",
+        "prettier": "3.2.5",
+        "prisma": "^5.15.1"
+    }
 }
