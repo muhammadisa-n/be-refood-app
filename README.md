@@ -2,24 +2,24 @@
 
 ### Frontend Repository
 
-[Frontend](https://github.com/muhammadisa226/fe-tugas-akhir)
+[Frontend](https://github.com/muhammadisa-n/fe-tugas-akhir)
 
 ### Recommendation Repository
 
-[Recommendation](https://github.com/muhammadisa226/reccomendation-tugas-akhir)
+[Recommendation](https://github.com/muhammadisa-n/reccomendation-tugas-akhir)
 
 # Usage
 
 ### Clone Repo
 
 ```sh
-git clone https://github.com/muhammadisa226/be-tugas-akhir.git
+git clone https://github.com/muhammadisa-n/be-tugas-akhir.git
 ```
 
 ### Or clone repo another branch
 
 ```sh
-git clone -b namebranch https://github.com/muhammadisa226/be-tugas-akhir.git
+git clone -b namebranch https://github.com/muhammadisa-n/be-tugas-akhir.git
 ```
 
 ### Project Setup
