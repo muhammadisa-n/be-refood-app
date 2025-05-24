@@ -65,7 +65,7 @@ module.exports = {
         { expiresIn: "1h" }
       );
 
-      const url = `${process.env.CLIENT_URL}/verification-email?token=${verifyEmailToken}`;
+      const url = `${process.env.CLIENT_URL}/refood-app/verification-email?token=${verifyEmailToken}`;
 
       const template = fs.readFileSync(
         path.join(__dirname, "../templates/verify-email.mustache"),
@@ -456,7 +456,7 @@ module.exports = {
         process.env.TOKEN_SECRET,
         { expiresIn: "1h" }
       );
-      const url = `${process.env.CLIENT_URL}/reset-password?token=${resetPasswordToken}`;
+      const url = `${process.env.CLIENT_URL}/refood-app/reset-password?token=${resetPasswordToken}`;
 
       const template = fs.readFileSync(
         path.join(__dirname, "../templates/forgot-password.mustache"),

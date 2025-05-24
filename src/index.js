@@ -10,9 +10,10 @@ const { connectDatabase } = require("./utils/prisma.js");
 const port = process.env.PORT_APP;
 const app = express();
 const clientUrl = process.env.CLIENT_URL;
+
 app.use(
   cors({
-    origin: [clientUrl],
+    origin: clientUrl,
     credentials: true,
   })
 );
@@ -21,8 +22,8 @@ app.use(morgan("dev"));
 app.use(cookieParser());
 app.use(express.json());
 app.use(fileUpload({ useTempFiles: true, tempFileDir: "./temp/" }));
-app.use(express.static("public"));
-app.use(router);
+app.use("/be-refood-app", express.static("public"));
+app.use("/be-refood-app", router);
 app.listen(port, () => {
   console.log(`Server is Running on port ${port} `);
 });
