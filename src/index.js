@@ -22,8 +22,8 @@ app.use(morgan("dev"));
 app.use(cookieParser());
 app.use(express.json());
 app.use(fileUpload({ useTempFiles: true, tempFileDir: "./temp/" }));
-app.use("/be-refood-app", express.static("public"));
-app.use("/be-refood-app", router);
+app.use(express.static("public"));
+app.use(router);
 app.listen(port, () => {
   console.log(`Server is Running on port ${port} `);
 });
