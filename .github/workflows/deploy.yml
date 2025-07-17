@@ -25,9 +25,9 @@ jobs:
           ssh -i ~/.ssh/id_ed25519 ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'EOF'
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-            cd /var/www/${{ secrets.VPS_DOMAIN }}/refood-app/be-refood-app
+            cd /var/www/${{ secrets.VPS_DOMAIN }}/refood/be-refood-app
             git config --global --add safe.directory /var/www/${{ secrets.VPS_DOMAIN }}/refood/be-refood-app
             git pull origin main
             npm install
-            pm2 restart be-refood-app
+            pm2 restart be-refood
           EOF
