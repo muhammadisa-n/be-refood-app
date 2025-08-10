@@ -1,0 +1,8 @@
+services:
+  be-portfolio:
+    container_name: be-refood
+    image: be_refood_image
+    build: .
+    ports:
+      - "18000:18000"
+    restart: always
