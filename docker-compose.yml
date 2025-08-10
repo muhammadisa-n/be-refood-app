@@ -1,5 +1,5 @@
 services:
-  be-portfolio:
+  be-refood:
     container_name: be-refood
     image: be_refood_image
     build: .
